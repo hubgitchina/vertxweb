@@ -3,6 +3,8 @@ package com.demo.controller;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +32,8 @@ import io.vertx.ext.web.handler.StaticHandler;
 @Component
 @RequestMapping("/user")
 public class UserController {
+
+	private final Logger logger = LoggerFactory.getLogger(UserController.class);
 
 	@RequestMapping("/index")
 	public StaticHandler index() {

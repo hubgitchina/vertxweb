@@ -18,7 +18,7 @@ import com.demo.verticle.VerticleMain;
 import io.vertx.core.Vertx;
 
 @SpringBootApplication
-@ComponentScan(value = { "com.demo.verticle", "com.demo.controller", "com.demo.handler", "com.demo.service" })
+@ComponentScan(value = { "com.demo.verticle", "com.demo.controller", "com.demo.handler", "com.demo.service", "com.demo.config" })
 public class VertxwebApplication {
 
 	private final Logger logger = LoggerFactory.getLogger(VertxwebApplication.class);
@@ -51,11 +51,11 @@ public class VertxwebApplication {
 		Vertx vertx = getVertx();
 
 		// 部署vertx
-//		vertx.deployVerticle(verticleMain, handler -> {
-//			logger.info("vertx deploy state [{}]", handler.succeeded());
-//		});
+		vertx.deployVerticle(verticleMain, handler -> {
+			logger.info("vertx deploy state [{}]", handler.succeeded());
+		});
 
-		DeploymentOptions options = new DeploymentOptions().setWorker(true);
-		vertx.deployVerticle(verticleMain, options);
+//		DeploymentOptions options = new DeploymentOptions().setWorker(true);
+//		vertx.deployVerticle(verticleMain, options);
 	}
 }

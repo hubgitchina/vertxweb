@@ -1,8 +1,8 @@
 package com.demo.verticle;
 
-import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import javax.validation.constraints.NotNull;
@@ -10,7 +10,6 @@ import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -20,6 +19,7 @@ import com.demo.annotation.RequestBody;
 import com.demo.annotation.RequestMapping;
 import com.demo.config.SpringBootContext;
 import com.demo.handler.TokenCheckHandler;
+import com.demo.util.ClazzUtils;
 import com.demo.vertx.VerticleUtils;
 
 import io.vertx.core.AbstractVerticle;
@@ -103,25 +103,17 @@ public class VerticleMain extends AbstractVerticle {
 		}
 
 		try {
-			Resource[] resources = VerticleUtils.scannerControllerClass(packagePath,
-					resourceLoader);
-			for (Resource resource : resources) {
-				String absolutePath = resource.getFile().getAbsolutePath().replace(File.separator,
-						".");
-				logger.info("文件路径：{}", absolutePath);
-				// String absolutePath = "com.demo.controller.UserController.class";
-				absolutePath = absolutePath.substring(absolutePath.indexOf(packagePath));
-				absolutePath = absolutePath.replace(".class", "");
-				if (StringUtils.isEmpty(absolutePath)) {
-					continue;
-				}
+			List<String> clazzNameList = ClazzUtils.getClazzName(packagePath, false);
+			for (String clazzName : clazzNameList) {
+				logger.info("文件路径：{}", clazzName);
 				// get class
-				Class<?> controllerClass = Class.forName(absolutePath);
+				Class<?> controllerClass = Class.forName(clazzName);
 				// from class get controller instance bean
-//				Object controller = SpringBootContext.getApplicationContext()
-//						.getBean(controllerClass);
+				Object controller = SpringBootContext.getApplicationContext()
+						.getBean(controllerClass);
 
-				Object controller = SpringBootContext.getApplicationContext().getBean("userController");
+				// Object controller =
+				// SpringBootContext.getApplicationContext().getBean("userController");
 
 				RequestMapping classRequestMapping = controllerClass
 						.getAnnotation(RequestMapping.class);

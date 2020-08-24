@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @ClassName: ClazzUtils
  * @Description: TODO
@@ -18,6 +21,8 @@ import java.util.jar.JarFile;
  * @Version 1.0
  */
 public class ClazzUtils {
+
+	private static final Logger logger = LoggerFactory.getLogger(ClazzUtils.class);
 
 	private static final String CLASS_SUFFIX = ".class";
 
@@ -46,7 +51,7 @@ public class ClazzUtils {
 					String protocol = url.getProtocol();
 					if ("file".equals(protocol)) {
 						String path = url.getPath();
-						System.out.println(path);
+						logger.info(path);
 						result.addAll(getAllClassNameByFile(new File(path), showChildPackageFlag));
 					} else if ("jar".equals(protocol)) {
 						JarFile jarFile = null;

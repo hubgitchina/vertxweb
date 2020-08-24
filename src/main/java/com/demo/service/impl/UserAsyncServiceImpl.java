@@ -10,12 +10,10 @@ import org.springframework.stereotype.Component;
 import com.demo.annotation.AsyncServiceHandler;
 import com.demo.service.BaseAsyncService;
 import com.demo.service.UserAsyncService;
-import com.demo.util.JdbcUtils;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.ResultSet;
@@ -34,30 +32,16 @@ public class UserAsyncServiceImpl implements UserAsyncService, BaseAsyncService 
 
 	private final Logger logger = LoggerFactory.getLogger(UserAsyncServiceImpl.class);
 
-	// @Autowired
-	// private UserService userService;
-	//
-	// @Override
-	// public void listUsers(User user, Handler<AsyncResult<List<User>>>
-	// resultHandler) {
-	// try {
-	// List<User> userList = userService.list(new QueryWrapper<>(user));
-	// Future.succeededFuture(userList).setHandler(resultHandler);
-	// } catch (Exception e) {
-	// resultHandler.handle(Future.failedFuture(e));
-	// }
-	// }
-
 	@Autowired
-	private Vertx vertx;
+	private JDBCClient jdbcClient;
 
 	@Override
 	public void getAllUser(Handler<AsyncResult<List<JsonObject>>> resultHandler) {
 
 		try {
-			// 获取到数据库连接的客户端
-			JDBCClient jdbcClient = new JdbcUtils(vertx).getDbClient();
 			jdbcClient.getConnection(res -> {
+				// String name = Thread.currentThread().getName();
+				// System.out.println(name);
 				if (res.succeeded()) {
 					SQLConnection connection = res.result();
 					connection.query("select * from user", res2 -> {
@@ -73,9 +57,9 @@ public class UserAsyncServiceImpl implements UserAsyncService, BaseAsyncService 
 							logger.error("查询失败：{}", res2.cause().getMessage());
 							resultHandler.handle(Future.failedFuture(res2.cause()));
 						}
+						connection.close();
 					});
 				} else {
-					// Failed to get connection - deal with it
 					logger.error("连接失败：{}", res.cause());
 					resultHandler.handle(Future.failedFuture(res.cause()));
 				}

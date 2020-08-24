@@ -41,6 +41,9 @@ public class JdbcTestVerticle extends AbstractVerticle {
 							System.out.println(jsonObject);
 						}
 					}
+
+					// 需要关闭SQL连接
+					connection.close();
 				});
 			} else {
 				// Failed to get connection - deal with it
