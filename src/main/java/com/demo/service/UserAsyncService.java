@@ -7,6 +7,7 @@ import com.demo.model.User;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -19,6 +20,6 @@ import io.vertx.core.json.JsonObject;
 @ProxyGen
 public interface UserAsyncService {
 
-	void getAllUser(Handler<AsyncResult<List<JsonObject>>> resultHandler);
+	void getAllUser(Handler<AsyncResult<JsonArray>> resultHandler);
 
 }

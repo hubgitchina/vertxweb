@@ -1,9 +1,7 @@
 package com.demo;
 
-import io.vertx.core.DeploymentOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -13,12 +11,14 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.event.EventListener;
 
 import com.demo.config.SpringBootContext;
-import com.demo.verticle.VerticleMain;
+import com.demo.verticle.WorkVerticle;
 
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 
 @SpringBootApplication
-@ComponentScan(value = { "com.demo.verticle", "com.demo.controller", "com.demo.handler", "com.demo.service", "com.demo.config" })
+@ComponentScan(value = { "com.demo.verticle", "com.demo.controller", "com.demo.handler",
+		"com.demo.service", "com.demo.config" })
 public class VertxwebApplication {
 
 	private final Logger logger = LoggerFactory.getLogger(VertxwebApplication.class);
@@ -45,17 +45,41 @@ public class VertxwebApplication {
 		ConfigurableApplicationContext applicationContext = event.getApplicationContext();
 		SpringBootContext.setApplicationContext(applicationContext);
 
-		VerticleMain verticleMain = applicationContext.getBean(VerticleMain.class);
+		// VerticleMain verticleMain = applicationContext.getBean(VerticleMain.class);
 
-//		Vertx vertx = Vertx.vertx();
+		// Vertx vertx = Vertx.vertx();
 		Vertx vertx = getVertx();
 
 		// 部署vertx
-		vertx.deployVerticle(verticleMain, handler -> {
-			logger.info("vertx deploy state [{}]", handler.succeeded());
+		// vertx.deployVerticle(verticleMain, res -> {
+		// if (res.succeeded()) {
+		// logger.info("Deployment id is [{}]", res.result());
+		// } else {
+		// logger.info("Deployment failed!");
+		// }
+		// });
+
+		/** 使用verticle名称,指定verticle实例数量，部署多个实例可以充分利用所有的核心 */
+		DeploymentOptions options = new DeploymentOptions().setInstances(24);
+
+		// 部署vertx
+		vertx.deployVerticle("com.demo.verticle.VerticleMain", options, res -> {
+			if (res.succeeded()) {
+				logger.info("Deployment id is [{}]", res.result());
+			} else {
+				logger.info("Deployment failed!");
+			}
 		});
 
-//		DeploymentOptions options = new DeploymentOptions().setWorker(true);
-//		vertx.deployVerticle(verticleMain, options);
+		WorkVerticle workVerticle = applicationContext.getBean(WorkVerticle.class);
+
+		DeploymentOptions options2 = new DeploymentOptions().setWorker(true);
+		vertx.deployVerticle(workVerticle, options2, res -> {
+			if (res.succeeded()) {
+				logger.info("Work Verticle Deployment id is [{}]", res.result());
+			} else {
+				logger.info("Work Verticle Deployment failed!");
+			}
+		});
 	}
 }

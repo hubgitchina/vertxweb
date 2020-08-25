@@ -3,6 +3,7 @@ package com.demo.controller;
 import java.util.List;
 import java.util.Map;
 
+import io.vertx.core.json.JsonArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,7 +92,7 @@ public class UserController {
 		};
 	}
 
-	@RequestBlockingHandler
+//	@RequestBlockingHandler
 	@RequestBody
 	@RequestMapping(value = "/getAllUser2")
 	public ControllerHandler getAllUser2() {
@@ -99,7 +100,7 @@ public class UserController {
 		return vertxRequest -> {
 			userAsyncService.getAllUser(result -> {
 				if (result.succeeded()) {
-					List<JsonObject> rows = result.result();
+					JsonArray rows = result.result();
 					vertxRequest.buildVertxRespone().responeSuccess(rows);
 				} else {
 					vertxRequest.buildVertxRespone().responseFail(result.cause().getMessage());
