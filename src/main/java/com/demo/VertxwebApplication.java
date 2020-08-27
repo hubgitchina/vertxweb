@@ -15,6 +15,7 @@ import com.demo.verticle.WorkVerticle;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 
 @SpringBootApplication
 @ComponentScan(value = { "com.demo.verticle", "com.demo.controller", "com.demo.handler",
@@ -60,7 +61,9 @@ public class VertxwebApplication {
 		// });
 
 		/** 使用verticle名称,指定verticle实例数量，部署多个实例可以充分利用所有的核心 */
-		DeploymentOptions options = new DeploymentOptions().setInstances(24);
+		int eventLoopPoolSize = VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE;
+		logger.info("CPU Core Number：{}", eventLoopPoolSize);
+		DeploymentOptions options = new DeploymentOptions().setInstances(eventLoopPoolSize);
 
 		// 部署vertx
 		vertx.deployVerticle("com.demo.verticle.VerticleMain", options, res -> {
@@ -73,7 +76,9 @@ public class VertxwebApplication {
 
 		WorkVerticle workVerticle = applicationContext.getBean(WorkVerticle.class);
 
-		DeploymentOptions options2 = new DeploymentOptions().setWorker(true);
+		DeploymentOptions options2 = new DeploymentOptions();
+		options2.setWorkerPoolSize(40);
+		options2.setWorker(true);
 		vertx.deployVerticle(workVerticle, options2, res -> {
 			if (res.succeeded()) {
 				logger.info("Work Verticle Deployment id is [{}]", res.result());

@@ -105,15 +105,11 @@ public class VerticleMain extends AbstractVerticle {
 		try {
 			List<String> clazzNameList = ClazzUtils.getClazzName(packagePath, false);
 			for (String clazzName : clazzNameList) {
-				logger.info("文件路径：{}", clazzName);
 				// get class
 				Class<?> controllerClass = Class.forName(clazzName);
 				// from class get controller instance bean
 				Object controller = SpringBootContext.getApplicationContext()
 						.getBean(controllerClass);
-
-				// Object controller =
-				// SpringBootContext.getApplicationContext().getBean("userController");
 
 				RequestMapping classRequestMapping = controllerClass
 						.getAnnotation(RequestMapping.class);

@@ -1,9 +1,7 @@
 package com.demo.controller;
 
-import java.util.List;
 import java.util.Map;
 
-import io.vertx.core.json.JsonArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +16,12 @@ import com.demo.handler.UserHandler;
 import com.demo.model.LoginModel;
 import com.demo.model.response.ResponeWrapper;
 import com.demo.service.UserAsyncService;
+import com.demo.util.EventBusConstants;
 import com.google.common.collect.Maps;
 
+import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.StaticHandler;
 
@@ -92,7 +94,7 @@ public class UserController {
 		};
 	}
 
-//	@RequestBlockingHandler
+	// @RequestBlockingHandler
 	@RequestBody
 	@RequestMapping(value = "/getAllUser2")
 	public ControllerHandler getAllUser2() {
@@ -106,6 +108,31 @@ public class UserController {
 					vertxRequest.buildVertxRespone().responseFail(result.cause().getMessage());
 				}
 			});
+		};
+	}
+
+	@Autowired
+	private Vertx vertx;
+
+	@RequestBody
+	@RequestMapping(value = "/getAllUser3")
+	public ControllerHandler getAllUser3() {
+
+		return vertxRequest -> {
+			try {
+				EventBus eb = vertx.eventBus();
+				JsonObject json = new JsonObject().put("id", 1);
+				eb.request(EventBusConstants.QUERY_ALL_USER, json, res -> {
+					if (res.succeeded()) {
+						JsonArray result = (JsonArray) res.result().body();
+						vertxRequest.buildVertxRespone().responeSuccess(result);
+					} else {
+						vertxRequest.buildVertxRespone().responseFail(res.cause().getMessage());
+					}
+				});
+			} catch (Exception e) {
+				vertxRequest.buildVertxRespone().responseFail(e.getMessage());
+			}
 		};
 	}
 }

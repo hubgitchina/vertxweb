@@ -42,6 +42,7 @@ public class AsyncJdbcTestVerticle extends AbstractVerticle {
 					} else {
 						System.out.println("查询失败");
 					}
+					connection.close();
 				});
 			} else {
 				// Failed to get connection - deal with it
