@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import javax.validation.constraints.NotNull;
 
+import io.vertx.ext.web.handler.StaticHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,12 +71,26 @@ public class VerticleMain extends AbstractVerticle {
 		// 添加token拦截器
 		router.route().path("/user1/*").handler(tokenCheckHandler);
 
+		router.route("/css/*").handler(StaticHandler.create("webroot/css"));
+
+		router.route("/images/*").handler(StaticHandler.create("webroot/images"));
+
 		// 编写一个get方法
 		for (String packagePath : controllerBasePackage) {
 			registerController(router, packagePath);
 		}
 
+		// 最后一个Route，请求URL没有匹配的Route, 则返回404
+		router.route().last().handler(context -> {
+			logger.error("请求URL【{}】未找到匹配的Route", context.request().path());
+			context.response().end("<h1>404</h1>");
+		});
+
+		// Route处理过程中发生了错误，且请求匹配的Route没有通过方法failureHandler设置自己专属的错误处理器，则返回
 		router.route().failureHandler(handler -> {
+			logger.error("Route处理过程出现异常");
+			handler.response().putHeader("Content-Type", "text/html;charset=utf-8")
+					.end("<h1>系统异常，请联系管理员</h1>");
 			handler.failure().printStackTrace();
 		});
 
@@ -152,8 +167,9 @@ public class VerticleMain extends AbstractVerticle {
 						String superPath = classRequestMapping.value()[0];
 						String methodPath = methodRequestMapping.value()[0];
 						// if api path empty skip
-						if (StringUtils.isEmpty(superPath) || StringUtils.isEmpty(methodPath))
+						if (StringUtils.isEmpty(superPath) || StringUtils.isEmpty(methodPath)) {
 							return;
+						}
 						String url = VerticleUtils.buildApiPath(superPath, methodPath);
 						// build route
 						Route route = VerticleUtils.buildRouterUrl(url, router,

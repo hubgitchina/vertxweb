@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.demo.annotation.AsyncServiceHandler;
 import com.demo.service.BaseAsyncService;
 import com.demo.service.UserAsyncService;
 
@@ -29,7 +28,6 @@ import io.vertx.ext.sql.SQLConnection;
  * @Version 1.0
  */
 @Component
-@AsyncServiceHandler
 public class UserAsyncServiceImpl implements UserAsyncService, BaseAsyncService {
 
 	private final Logger logger = LoggerFactory.getLogger(UserAsyncServiceImpl.class);
@@ -38,7 +36,7 @@ public class UserAsyncServiceImpl implements UserAsyncService, BaseAsyncService 
 	private JDBCClient jdbcClient;
 
 	@Override
-	public void getAllUser(Handler<AsyncResult<JsonArray>> resultHandler) {
+	public void getAllUserClose(Handler<AsyncResult<JsonArray>> resultHandler) {
 
 		try {
 			jdbcClient.getConnection(res -> {
@@ -61,6 +59,36 @@ public class UserAsyncServiceImpl implements UserAsyncService, BaseAsyncService 
 					});
 				} else {
 					logger.error("连接失败：{}", res.cause().getMessage());
+					resultHandler.handle(Future.failedFuture(res.cause()));
+				}
+			});
+		} catch (Exception e) {
+			logger.error("查询异常：{}", e.getMessage());
+			resultHandler.handle(Future.failedFuture(e));
+		}
+	}
+
+	@Override
+	public void getAllUser(Handler<AsyncResult<JsonArray>> resultHandler) {
+
+		try {
+			String sql = "select * from user";
+			// 构造参数
+			JsonArray params = new JsonArray();
+			// 执行查询
+			jdbcClient.queryWithParams(sql, params, res -> {
+				if (res.succeeded()) {
+					// 获取到查询的结果，Vert.x对ResultSet进行了封装
+					ResultSet resultSet = res.result();
+					// 把ResultSet转为List<JsonObject>形式
+					List<JsonObject> rows = resultSet.getRows();
+
+					// 输出结果
+					JsonArray jsonArray = (JsonArray) JsonUtil.wrapJsonValue(rows);
+
+					Future.succeededFuture(jsonArray).onComplete(resultHandler);
+				} else {
+					logger.error("查询失败：{}", res.cause().getMessage());
 					resultHandler.handle(Future.failedFuture(res.cause()));
 				}
 			});

@@ -19,7 +19,7 @@ public class UserHandler {
 
 	public static void getAllUser(VertxRequest vertxRequest, UserAsyncService userAsyncService) {
 
-		userAsyncService.getAllUser(res -> {
+		userAsyncService.getAllUserClose(res -> {
 			if (res.succeeded()) {
 				JsonArray result = res.result();
 				vertxRequest.buildVertxRespone().responeSuccess(result);

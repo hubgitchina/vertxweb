@@ -19,11 +19,14 @@ import com.demo.service.UserAsyncService;
 import com.demo.util.EventBusConstants;
 import com.google.common.collect.Maps;
 
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.ext.web.templ.thymeleaf.ThymeleafTemplateEngine;
 
 /**
  * @ClassName: UserController
@@ -43,6 +46,40 @@ public class UserController {
 
 		// 这里不要写代码 不然这里的代码 只会在注册路由的时候 被调用一次
 		return StaticHandler.create();
+	}
+
+	@RequestMapping("/list")
+	public StaticHandler list() {
+
+		// 这里不要写代码 不然这里的代码 只会在注册路由的时候 被调用一次
+		return StaticHandler.create("webroot/user").setIndexPage("user.html");
+	}
+
+	@RequestMapping("/addUser")
+	public StaticHandler addUser() {
+
+		// 这里不要写代码 不然这里的代码 只会在注册路由的时候 被调用一次
+		return StaticHandler.create("webroot/user").setIndexPage("add_user.html");
+	}
+
+	@Autowired
+	private ThymeleafTemplateEngine templateEngine;
+
+	@RequestMapping("/thymeleaf")
+	public Handler<RoutingContext> thymeleaf() {
+
+		return routingContext -> {
+
+			JsonObject data = new JsonObject();
+			data.put("msg", "后台变量");
+			templateEngine.render(data, "/index", res -> {
+				if (res.succeeded()) {
+					routingContext.response().end(res.result());
+				} else {
+					routingContext.fail(res.cause());
+				}
+			});
+		};
 	}
 
 	@RequestMapping("/userInfo")
@@ -100,7 +137,7 @@ public class UserController {
 	public ControllerHandler getAllUser2() {
 
 		return vertxRequest -> {
-			userAsyncService.getAllUser(result -> {
+			userAsyncService.getAllUserClose(result -> {
 				if (result.succeeded()) {
 					JsonArray rows = result.result();
 					vertxRequest.buildVertxRespone().responeSuccess(rows);

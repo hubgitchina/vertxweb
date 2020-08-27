@@ -11,11 +11,13 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.event.EventListener;
 
 import com.demo.config.SpringBootContext;
+import com.demo.verticle.VerticleMain;
 import com.demo.verticle.WorkVerticle;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.eventbus.EventBusOptions;
 
 @SpringBootApplication
 @ComponentScan(value = { "com.demo.verticle", "com.demo.controller", "com.demo.handler",
@@ -32,7 +34,11 @@ public class VertxwebApplication {
 	@Bean
 	public Vertx getVertx() {
 
-		return Vertx.vertx();
+		EventBusOptions eventBusOptions = new EventBusOptions();
+
+		VertxOptions vertxOptions = new VertxOptions();
+		vertxOptions.setWorkerPoolSize(200);
+		return Vertx.vertx(vertxOptions);
 	}
 
 	/**
@@ -66,7 +72,7 @@ public class VertxwebApplication {
 		DeploymentOptions options = new DeploymentOptions().setInstances(eventLoopPoolSize);
 
 		// 部署vertx
-		vertx.deployVerticle("com.demo.verticle.VerticleMain", options, res -> {
+		vertx.deployVerticle(VerticleMain.class, options, res -> {
 			if (res.succeeded()) {
 				logger.info("Deployment id is [{}]", res.result());
 			} else {
@@ -77,7 +83,6 @@ public class VertxwebApplication {
 		WorkVerticle workVerticle = applicationContext.getBean(WorkVerticle.class);
 
 		DeploymentOptions options2 = new DeploymentOptions();
-		options2.setWorkerPoolSize(40);
 		options2.setWorker(true);
 		vertx.deployVerticle(workVerticle, options2, res -> {
 			if (res.succeeded()) {
