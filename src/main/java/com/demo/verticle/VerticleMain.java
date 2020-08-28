@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import javax.validation.constraints.NotNull;
 
+import io.vertx.ext.web.handler.FaviconHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,9 +72,9 @@ public class VerticleMain extends AbstractVerticle {
 		// 添加token拦截器
 		router.route().path("/user1/*").handler(tokenCheckHandler);
 
-		router.route("/css/*").handler(StaticHandler.create("webroot/css"));
+		router.route("/favicon.ico").handler(FaviconHandler.create("static/images/favicon.ico"));
 
-		router.route("/images/*").handler(StaticHandler.create("webroot/images"));
+		router.route("/static/*").handler(StaticHandler.create("static"));
 
 		// 编写一个get方法
 		for (String packagePath : controllerBasePackage) {

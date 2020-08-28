@@ -26,14 +26,14 @@ public class ThymeleafTemplateConfig {
 	public ClassLoaderTemplateResolver templateResolver() {
 
 		ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
-		resolver.setPrefix("webroot/templates");
+		resolver.setPrefix("templates");
 		resolver.setSuffix(".html");
 		resolver.setTemplateMode(TemplateMode.HTML);
 		return resolver;
 	}
 
 	@Bean
-	public ThymeleafTemplateEngine templateEngine() {
+	public ThymeleafTemplateEngine thymeleafTemplateEngine() {
 
 		ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create(vertx);
 		engine.getThymeleafTemplateEngine().setTemplateResolver(templateResolver());
