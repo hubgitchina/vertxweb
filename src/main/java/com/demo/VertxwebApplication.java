@@ -37,7 +37,7 @@ public class VertxwebApplication {
 		EventBusOptions eventBusOptions = new EventBusOptions();
 
 		VertxOptions vertxOptions = new VertxOptions();
-		vertxOptions.setWorkerPoolSize(200);
+		vertxOptions.setWorkerPoolSize(256);
 		return Vertx.vertx(vertxOptions);
 	}
 

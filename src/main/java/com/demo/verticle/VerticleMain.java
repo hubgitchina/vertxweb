@@ -72,8 +72,10 @@ public class VerticleMain extends AbstractVerticle {
 		// 添加token拦截器
 		router.route().path("/user1/*").handler(tokenCheckHandler);
 
+		//favicon.ico图标设置
 		router.route("/favicon.ico").handler(FaviconHandler.create("static/images/favicon.ico"));
 
+		//CSS，IMAGE，JS等静态资源设置
 		router.route("/static/*").handler(StaticHandler.create("static"));
 
 		// 编写一个get方法
