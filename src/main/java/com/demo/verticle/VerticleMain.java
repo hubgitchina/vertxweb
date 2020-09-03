@@ -7,8 +7,6 @@ import java.util.Optional;
 
 import javax.validation.constraints.NotNull;
 
-import io.vertx.ext.web.handler.FaviconHandler;
-import io.vertx.ext.web.handler.StaticHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +30,8 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.FaviconHandler;
+import io.vertx.ext.web.handler.StaticHandler;
 
 /**
  * @ClassName: VerticleMain
@@ -44,9 +44,6 @@ import io.vertx.ext.web.handler.BodyHandler;
 public class VerticleMain extends AbstractVerticle {
 
 	private final Logger logger = LoggerFactory.getLogger(VerticleMain.class);
-
-	@Autowired
-	private TokenCheckHandler tokenCheckHandler;
 
 	@Autowired
 	private ResourceLoader resourceLoader;
@@ -69,13 +66,16 @@ public class VerticleMain extends AbstractVerticle {
 		// 路由
 		Router router = Router.router(vertx);
 
+		TokenCheckHandler tokenCheckHandler = SpringBootContext.getApplicationContext()
+				.getBean(TokenCheckHandler.class);
+
 		// 添加token拦截器
 		router.route().path("/user1/*").handler(tokenCheckHandler);
 
-		//favicon.ico图标设置
+		// favicon.ico图标设置
 		router.route("/favicon.ico").handler(FaviconHandler.create("static/images/favicon.ico"));
 
-		//CSS，IMAGE，JS等静态资源设置
+		// CSS，IMAGE，JS等静态资源设置
 		router.route("/static/*").handler(StaticHandler.create("static"));
 
 		// 编写一个get方法

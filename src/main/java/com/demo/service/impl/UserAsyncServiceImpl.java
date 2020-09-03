@@ -55,7 +55,13 @@ public class UserAsyncServiceImpl implements UserAsyncService, BaseAsyncService 
 							logger.error("查询失败：{}", res2.cause().getMessage());
 							resultHandler.handle(Future.failedFuture(res2.cause()));
 						}
-						connection.close();
+						connection.close(done -> {
+							if (done.failed()) {
+								// throw new VertxException(done.cause());
+								logger.error("数据库连接关闭失败：{}", done.cause().getMessage());
+								resultHandler.handle(Future.failedFuture(done.cause()));
+							}
+						});
 					});
 				} else {
 					logger.error("连接失败：{}", res.cause().getMessage());
@@ -77,19 +83,24 @@ public class UserAsyncServiceImpl implements UserAsyncService, BaseAsyncService 
 			JsonArray params = new JsonArray();
 			// 执行查询
 			jdbcClient.queryWithParams(sql, params, res -> {
-				if (res.succeeded()) {
-					// 获取到查询的结果，Vert.x对ResultSet进行了封装
-					ResultSet resultSet = res.result();
-					// 把ResultSet转为List<JsonObject>形式
-					List<JsonObject> rows = resultSet.getRows();
+				try {
+					if (res.succeeded()) {
+						// 获取到查询的结果，Vert.x对ResultSet进行了封装
+						ResultSet resultSet = res.result();
+						// 把ResultSet转为List<JsonObject>形式
+						List<JsonObject> rows = resultSet.getRows();
 
-					// 输出结果
-					JsonArray jsonArray = (JsonArray) JsonUtil.wrapJsonValue(rows);
+						// 输出结果
+						JsonArray jsonArray = (JsonArray) JsonUtil.wrapJsonValue(rows);
 
-					Future.succeededFuture(jsonArray).onComplete(resultHandler);
-				} else {
-					logger.error("查询失败：{}", res.cause().getMessage());
-					resultHandler.handle(Future.failedFuture(res.cause()));
+						Future.succeededFuture(jsonArray).onComplete(resultHandler);
+					} else {
+						logger.error("查询失败：{}", res.cause().getMessage());
+						resultHandler.handle(Future.failedFuture(res.cause()));
+					}
+				} catch (Exception re) {
+					logger.error("查询结果回调错误：{}", re.getMessage());
+					resultHandler.handle(Future.failedFuture(re));
 				}
 			});
 		} catch (Exception e) {
