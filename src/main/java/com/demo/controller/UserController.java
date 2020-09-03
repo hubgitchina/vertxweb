@@ -149,4 +149,27 @@ public class UserController {
 			}
 		};
 	}
+
+	/**
+	 * @Author wangpeng
+	 * @Description Vertx-Jdbc-Client的实现就是在 worker 线程池跑查询，获取结果后在调用的线程(eventloop)回调
+	 * @Date 10:13
+	 * @Param
+	 * @return
+	 */
+	@RequestBody
+	@RequestMapping(value = "/getAllUser")
+	public ControllerHandler getAllUser() {
+
+		return vertxRequest -> {
+			userAsyncService.getAllUser(result -> {
+				if (result.succeeded()) {
+					JsonArray rows = result.result();
+					vertxRequest.buildVertxRespone().responeSuccess(rows);
+				} else {
+					vertxRequest.buildVertxRespone().responseFail(result.cause().getMessage());
+				}
+			});
+		};
+	}
 }

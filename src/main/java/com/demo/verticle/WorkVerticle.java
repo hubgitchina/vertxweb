@@ -47,7 +47,7 @@ public class WorkVerticle extends AbstractVerticle {
 					if (result.succeeded()) {
 						JsonArray rows = result.result();
 						Future.succeededFuture(rows);
-						message.reply(rows);
+						message.replyAndRequest(rows);
 					} else {
 						Future.failedFuture(result.cause());
 						message.fail(HTTP_INTERNAL_ERROR, result.cause().getMessage());
