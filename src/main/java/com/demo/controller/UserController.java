@@ -1,6 +1,7 @@
 package com.demo.controller;
 
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -166,6 +167,44 @@ public class UserController {
 				if (result.succeeded()) {
 					JsonArray rows = result.result();
 					vertxRequest.buildVertxRespone().responeSuccess(rows);
+				} else {
+					vertxRequest.buildVertxRespone().responseFail(result.cause().getMessage());
+				}
+			});
+		};
+	}
+
+	@RequestBody
+	@RequestMapping(value = "/setRedisKey")
+	public ControllerHandler setRedisKey() {
+
+		return vertxRequest -> {
+			Optional<String> key = vertxRequest.getParam("key");
+			Optional<String> value = vertxRequest.getParam("value");
+			logger.info("Key为 {} ，Value为 {}", key.get(), value.get());
+			userAsyncService.setRedisKey(key.get(), value.get(), result -> {
+				if (result.succeeded()) {
+					vertxRequest.buildVertxRespone().responeSuccess(result.result());
+				} else {
+					vertxRequest.buildVertxRespone().responseFail(result.cause().getMessage());
+				}
+			});
+
+			// vertxRequest.buildVertxRespone().responeState(true);
+		};
+	}
+
+	@RequestBody
+	@RequestMapping(value = "/getRedisValue")
+	public ControllerHandler getRedisValue() {
+
+		return vertxRequest -> {
+			Optional<String> key = vertxRequest.getParam("key");
+			logger.info("Key为 {}", key.get());
+			userAsyncService.getRedisValue(key.get(), result -> {
+				if (result.succeeded()) {
+					String value = result.result();
+					vertxRequest.buildVertxRespone().responeSuccess(value);
 				} else {
 					vertxRequest.buildVertxRespone().responseFail(result.cause().getMessage());
 				}

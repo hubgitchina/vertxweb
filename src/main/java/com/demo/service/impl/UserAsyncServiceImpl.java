@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import com.demo.service.BaseAsyncService;
 import com.demo.service.UserAsyncService;
+import com.google.common.collect.Lists;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -19,6 +20,8 @@ import io.vertx.core.json.impl.JsonUtil;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLConnection;
+import io.vertx.redis.client.RedisAPI;
+import io.vertx.redis.client.Response;
 
 /**
  * @ClassName: UserAsyncServiceImpl
@@ -107,5 +110,54 @@ public class UserAsyncServiceImpl implements UserAsyncService, BaseAsyncService 
 			logger.error("查询异常：{}", e.getMessage());
 			resultHandler.handle(Future.failedFuture(e));
 		}
+	}
+
+	@Autowired
+	private RedisAPI redisAPI;
+
+	@Override
+	public void setRedisKey(String key, String value, Handler<AsyncResult<Boolean>> resultHandler) {
+
+		List<String> param = Lists.newArrayListWithCapacity(2);
+		param.add(key);
+		param.add(value);
+		redisAPI.set(param, result -> {
+			if (result.succeeded()) {
+				logger.info("Redis设置值成功");
+				resultHandler.handle(Future.succeededFuture(true));
+			} else {
+				logger.error("Redis设置值失败：{}", result.cause().getMessage());
+				resultHandler.handle(Future.failedFuture(result.cause()));
+			}
+		});
+
+		// redisAPI.getset(key, value, result -> {
+		// if (result.succeeded()) {
+		// logger.info("Redis设置值成功");
+		// } else {
+		// logger.error("Redis设置值失败：{}", result.cause().getMessage());
+		// }
+		// });
+	}
+
+	@Override
+	public void getRedisValue(String key, Handler<AsyncResult<String>> resultHandler) {
+
+		redisAPI.get(key, result -> {
+			if (result.succeeded()) {
+				Response response = result.result();
+				if (response != null) {
+					String value = response.toString();
+					logger.info("Redis获取值成功，{}", value);
+					resultHandler.handle(Future.succeededFuture(value));
+				} else {
+					logger.error("Redis获取值失败，未找到数据");
+					resultHandler.handle(Future.failedFuture("Redis获取值失败，未找到数据"));
+				}
+			} else {
+				logger.error("Redis获取值失败：{}", result.cause().getMessage());
+				resultHandler.handle(Future.failedFuture(result.cause()));
+			}
+		});
 	}
 }

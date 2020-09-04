@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -69,6 +70,10 @@ public class VerticleMain extends AbstractVerticle {
 		TokenCheckHandler tokenCheckHandler = SpringBootContext.getApplicationContext()
 				.getBean(TokenCheckHandler.class);
 
+		ConfigurableEnvironment environment = SpringBootContext.getApplicationContext()
+				.getEnvironment();
+		int port = Integer.parseInt(environment.getProperty("server.port"));
+
 		// 添加token拦截器
 		router.route().path("/user1/*").handler(tokenCheckHandler);
 
@@ -99,12 +104,12 @@ public class VerticleMain extends AbstractVerticle {
 
 		// start listen port
 		HttpServer server = vertx.createHttpServer();
-		server.requestHandler(router).listen(8888, handler -> {
+		server.requestHandler(router).listen(port, handler -> {
 			if (handler.succeeded()) {
-				logger.info("vertx run port : [{}] run state : [{}]", 8888, handler.succeeded());
+				logger.info("vertx run port : [{}] run state : [{}]", port, handler.succeeded());
 				startPromise.complete();
 			} else {
-				logger.info("vertx run port : [{}] run state : [{}]", 8888, handler.failed());
+				logger.info("vertx run port : [{}] run state : [{}]", port, handler.failed());
 				startPromise.fail(handler.cause());
 			}
 		});

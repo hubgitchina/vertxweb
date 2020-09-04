@@ -33,4 +33,21 @@ public interface UserAsyncService {
 	 */
 	void getAllUser(Handler<AsyncResult<JsonArray>> resultHandler);
 
+	/**
+	 * @Author wangpeng
+	 * @Description Redis通过key设置对应value值
+	 * @Date 17:46
+	 * @Param
+	 * @return
+	 */
+	void setRedisKey(String key, String value, Handler<AsyncResult<Boolean>> resultHandler);
+
+	/**
+	 * @Author wangpeng
+	 * @Description Redis通过key获取对应值
+	 * @Date 17:47
+	 * @Param
+	 * @return
+	 */
+	void getRedisValue(String key, Handler<AsyncResult<String>> resultHandler);
 }
