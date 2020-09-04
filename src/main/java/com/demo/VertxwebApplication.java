@@ -2,6 +2,7 @@ package com.demo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -31,13 +32,16 @@ public class VertxwebApplication {
 		SpringApplication.run(VertxwebApplication.class, args);
 	}
 
+	@Value("${vertx.workerPoolSize}")
+	private int workerPoolSize;
+
 	@Bean
 	public Vertx getVertx() {
 
 		EventBusOptions eventBusOptions = new EventBusOptions();
 
 		VertxOptions vertxOptions = new VertxOptions();
-		vertxOptions.setWorkerPoolSize(256);
+		vertxOptions.setWorkerPoolSize(workerPoolSize);
 		return Vertx.vertx(vertxOptions);
 	}
 
