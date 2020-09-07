@@ -1,5 +1,7 @@
 package com.demo.service;
 
+import java.util.concurrent.TimeUnit;
+
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 
@@ -23,12 +25,12 @@ public interface RedisService {
 
 	/**
 	 * @Author wangpeng
-	 * @Description Redis通过key设置对应value值，并制定过期时间
+	 * @Description Redis通过key设置对应value值，并根据时间单位指定过期时间
 	 * @Date 11:20
 	 * @Param
 	 * @return
 	 */
-	void setRedisKeyExpire(String key, String expire, String value,
+	void setRedisKeyExpire(String key, String expire, String value, TimeUnit timeUnit,
 			Handler<AsyncResult<Boolean>> resultHandler);
 
 	/**

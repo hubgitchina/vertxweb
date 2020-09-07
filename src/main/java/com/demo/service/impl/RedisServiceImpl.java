@@ -1,6 +1,7 @@
 package com.demo.service.impl;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,12 +50,14 @@ public class RedisServiceImpl implements RedisService {
 	}
 
 	@Override
-	public void setRedisKeyExpire(String key, String expire, String value,
+	public void setRedisKeyExpire(String key, String expire, String value, TimeUnit timeUnit,
 			Handler<AsyncResult<Boolean>> resultHandler) {
 
-		redisAPI.psetex(key, expire, value, result -> {
+		long timeToLive = timeUnit.toMillis(Long.parseLong(expire));
+
+		redisAPI.psetex(key, Long.toString(timeToLive), value, result -> {
 			if (result.succeeded()) {
-				logger.info("Redis设置值【{}】过期时间为【{}】毫秒", key, expire);
+				logger.info("Redis设置值【{}】过期时间为【{}】耗秒", key, timeToLive);
 				resultHandler.handle(Future.succeededFuture(true));
 			} else {
 				logger.error("Redis设置值【{}】过期时间失败", key);

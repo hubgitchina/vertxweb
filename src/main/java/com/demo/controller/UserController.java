@@ -2,6 +2,7 @@ package com.demo.controller;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -207,13 +208,15 @@ public class UserController {
 			Optional<String> expire = vertxRequest.getParam("expire");
 			Optional<String> value = vertxRequest.getParam("value");
 			logger.info("Key为 {} ，Value为 {}，过期时间为 {}", key.get(), value.get(), expire.get());
-			redisService.setRedisKeyExpire(key.get(), expire.get(), value.get(), result -> {
-				if (result.succeeded()) {
-					vertxRequest.buildVertxRespone().responeSuccess(result.result());
-				} else {
-					vertxRequest.buildVertxRespone().responseFail(result.cause().getMessage());
-				}
-			});
+			redisService.setRedisKeyExpire(key.get(), expire.get(), value.get(), TimeUnit.MINUTES,
+					result -> {
+						if (result.succeeded()) {
+							vertxRequest.buildVertxRespone().responeSuccess(result.result());
+						} else {
+							vertxRequest.buildVertxRespone()
+									.responseFail(result.cause().getMessage());
+						}
+					});
 		};
 	}
 
