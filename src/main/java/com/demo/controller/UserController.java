@@ -16,6 +16,7 @@ import com.demo.enums.RequestMethod;
 import com.demo.handler.UserHandler;
 import com.demo.model.LoginModel;
 import com.demo.model.response.ResponeWrapper;
+import com.demo.service.RedisService;
 import com.demo.service.UserAsyncService;
 import com.demo.util.EventBusConstants;
 import com.google.common.collect.Maps;
@@ -174,6 +175,9 @@ public class UserController {
 		};
 	}
 
+	@Autowired
+	private RedisService redisService;
+
 	@RequestBody
 	@RequestMapping(value = "/setRedisKey")
 	public ControllerHandler setRedisKey() {
@@ -182,7 +186,7 @@ public class UserController {
 			Optional<String> key = vertxRequest.getParam("key");
 			Optional<String> value = vertxRequest.getParam("value");
 			logger.info("Key为 {} ，Value为 {}", key.get(), value.get());
-			userAsyncService.setRedisKey(key.get(), value.get(), result -> {
+			redisService.setRedisKey(key.get(), value.get(), result -> {
 				if (result.succeeded()) {
 					vertxRequest.buildVertxRespone().responeSuccess(result.result());
 				} else {
@@ -201,7 +205,7 @@ public class UserController {
 		return vertxRequest -> {
 			Optional<String> key = vertxRequest.getParam("key");
 			logger.info("Key为 {}", key.get());
-			userAsyncService.getRedisValue(key.get(), result -> {
+			redisService.getRedisValue(key.get(), result -> {
 				if (result.succeeded()) {
 					String value = result.result();
 					vertxRequest.buildVertxRespone().responeSuccess(value);
