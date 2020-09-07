@@ -40,16 +40,24 @@ public class RedisServiceImpl implements RedisService {
 		redisAPI.set(param, result -> {
 			if (result.succeeded()) {
 				logger.info("Redis设置值成功");
-				redisAPI.expire(key, "60", handler -> {
-					if (handler.succeeded()) {
-						logger.info("Redis设置值【{}】过期时间为【{}】秒", key, 60);
-					} else {
-						logger.error("Redis设置值【{}】过期时间失败", key);
-					}
-				});
 				resultHandler.handle(Future.succeededFuture(true));
 			} else {
 				logger.error("Redis设置值失败：{}", result.cause().getMessage());
+				resultHandler.handle(Future.failedFuture(result.cause()));
+			}
+		});
+	}
+
+	@Override
+	public void setRedisKeyExpire(String key, String expire, String value,
+			Handler<AsyncResult<Boolean>> resultHandler) {
+
+		redisAPI.psetex(key, expire, value, result -> {
+			if (result.succeeded()) {
+				logger.info("Redis设置值【{}】过期时间为【{}】毫秒", key, expire);
+				resultHandler.handle(Future.succeededFuture(true));
+			} else {
+				logger.error("Redis设置值【{}】过期时间失败", key);
 				resultHandler.handle(Future.failedFuture(result.cause()));
 			}
 		});

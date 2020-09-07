@@ -23,6 +23,16 @@ public interface RedisService {
 
 	/**
 	 * @Author wangpeng
+	 * @Description Redis通过key设置对应value值，并制定过期时间
+	 * @Date 11:20
+	 * @Param
+	 * @return
+	 */
+	void setRedisKeyExpire(String key, String expire, String value,
+			Handler<AsyncResult<Boolean>> resultHandler);
+
+	/**
+	 * @Author wangpeng
 	 * @Description Redis通过key获取对应值
 	 * @Date 17:47
 	 * @Param

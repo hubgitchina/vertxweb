@@ -199,6 +199,25 @@ public class UserController {
 	}
 
 	@RequestBody
+	@RequestMapping(value = "/setRedisKeyExpire")
+	public ControllerHandler setRedisKeyExpire() {
+
+		return vertxRequest -> {
+			Optional<String> key = vertxRequest.getParam("key");
+			Optional<String> expire = vertxRequest.getParam("expire");
+			Optional<String> value = vertxRequest.getParam("value");
+			logger.info("Key为 {} ，Value为 {}，过期时间为 {}", key.get(), value.get(), expire.get());
+			redisService.setRedisKeyExpire(key.get(), expire.get(), value.get(), result -> {
+				if (result.succeeded()) {
+					vertxRequest.buildVertxRespone().responeSuccess(result.result());
+				} else {
+					vertxRequest.buildVertxRespone().responseFail(result.cause().getMessage());
+				}
+			});
+		};
+	}
+
+	@RequestBody
 	@RequestMapping(value = "/getRedisValue")
 	public ControllerHandler getRedisValue() {
 
