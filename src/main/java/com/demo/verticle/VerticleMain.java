@@ -74,6 +74,16 @@ public class VerticleMain extends AbstractVerticle {
 				.getEnvironment();
 		int port = Integer.parseInt(environment.getProperty("server.port"));
 
+		/**
+		 * 默认上传文件时会在服务器生成file-uploads文件夹<br/>
+		 * setUploadsDirectory可改变缓存文件的存放路径<br/>
+		 * setDeleteUploadedFilesOnEnd可设置上传成功后删除缓存文件
+		 */
+		router.route()
+				.handler(BodyHandler.create()
+						.setUploadsDirectory(System.getProperty("java.io.tmpdir"))
+						.setDeleteUploadedFilesOnEnd(true));
+
 		// 添加token拦截器
 		router.route().path("/user1/*").handler(tokenCheckHandler);
 
