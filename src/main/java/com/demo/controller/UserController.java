@@ -2,11 +2,13 @@ package com.demo.controller;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.demo.annotation.RequestBlockingHandler;
@@ -24,8 +26,10 @@ import com.google.common.collect.Maps;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.file.FileSystem;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.handler.StaticHandler;
 
 /**
@@ -235,6 +239,74 @@ public class UserController {
 					vertxRequest.buildVertxRespone().responseFail(result.cause().getMessage());
 				}
 			});
+		};
+	}
+
+	@Value("${file.uploadFolder}")
+	private String uploadFolder;
+
+	@RequestBody
+	@RequestMapping(value = "/upload", method = RequestMethod.POST)
+	public ControllerHandler upload() {
+
+		return vertxRequest -> {
+
+			System.out.println(System.getProperty("java.io.tmpdir"));
+
+			Set<FileUpload> fileUploadSet = vertxRequest.getRoutingContext().fileUploads();
+
+			FileSystem fs = vertx.fileSystem();
+			fileUploadSet.forEach(fileUpload -> {
+				fs.exists(uploadFolder, res -> {
+					if (!res.result()) {
+						logger.info("目录不存在，创建目录【{}】", uploadFolder);
+						fs.mkdirs(uploadFolder, result -> {
+							if (result.succeeded()) {
+								logger.info("目录创建成功，开始上传");
+								String path = uploadFolder + fileUpload.fileName();
+								fs.copy(fileUpload.uploadedFileName(), path, upload -> {
+									if (upload.succeeded()) {
+										logger.info("文件上传成功");
+										vertxRequest.buildVertxRespone().responeState(true);
+									} else {
+										logger.error("文件上传失败：{}", upload.cause().getMessage());
+										vertxRequest.buildVertxRespone().responseFail(
+												"文件上传失败：" + upload.cause().getMessage());
+									}
+								});
+							} else {
+								logger.error("目录创建失败：{}", result.cause().getMessage());
+								vertxRequest.buildVertxRespone()
+										.responseFail("目录创建失败：" + result.cause().getMessage());
+							}
+						});
+					} else {
+						logger.info("目录已存在，直接上传");
+						String path = uploadFolder + fileUpload.fileName();
+						fs.copy(fileUpload.uploadedFileName(), path, upload -> {
+							if (upload.succeeded()) {
+								logger.info("文件上传成功");
+								vertxRequest.buildVertxRespone().responeState(true);
+							} else {
+								logger.error("文件上传失败：{}", upload.cause().getMessage());
+								vertxRequest.buildVertxRespone()
+										.responseFail("文件上传失败：" + upload.cause().getMessage());
+							}
+						});
+					}
+				});
+			});
+		};
+	}
+
+	@RequestBody
+	@RequestMapping(value = "/download", method = RequestMethod.POST)
+	public ControllerHandler download() {
+
+		return vertxRequest -> {
+			String fileName = "数据对比.docx";
+			String path = uploadFolder + fileName;
+			vertxRequest.buildVertxRespone().responseFile(fileName, path, null);
 		};
 	}
 }

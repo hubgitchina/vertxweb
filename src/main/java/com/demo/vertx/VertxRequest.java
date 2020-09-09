@@ -37,6 +37,11 @@ public class VertxRequest {
 		return new VertxRequest(routingContext);
 	}
 
+	public RoutingContext getRoutingContext() {
+
+		return this.routingContext;
+	}
+
 	/**
 	 * 构建 VertxRespone
 	 *

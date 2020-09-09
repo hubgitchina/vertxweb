@@ -3,6 +3,10 @@ package com.demo.vertx;
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_OK;
 
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +44,10 @@ public class VertxRespone {
 
 		HttpServerResponse httpServerResponse = routingContext.response();
 		httpServerResponse.putHeader("Content-Type", "text/json;charset=utf-8");
+		// httpServerResponse.putHeader("Access-Control-Allow-Origin", "*");
+		// httpServerResponse.putHeader("Access-Control-Allow-Credentials", "true");
+		// httpServerResponse.putHeader("Content-Disposition", "attachment");
+
 		try {
 			// 转换为JSON 字符串
 			httpServerResponse.end(JsonUtils.objectToJson(responeWrapper));
@@ -47,6 +55,32 @@ public class VertxRespone {
 			logger.error("serialize object to json fail wrapper: [{}]", responeWrapper);
 			e.printStackTrace();
 		}
+	}
+
+	public void responseFile(String fileName, String filePath, String contentType) {
+
+		if (StringUtils.isBlank(contentType)) {
+			contentType = "application/octet-stream";
+		}
+
+		String downloadFileName = null;
+		try {
+			downloadFileName = new String(fileName.getBytes("gb2312"), "ISO_8859_1");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+
+		File file = new File(filePath);
+
+		// 设置响应头，把文件名字设置好
+		routingContext.response().putHeader("Content-Disposition",
+				"attachment; filename=" + downloadFileName);
+		// 设置文件长度
+		routingContext.response().putHeader("Content-Length", String.valueOf(file.length()));
+		// 解决编码问题
+		routingContext.response().putHeader("Content-Type", contentType);
+
+		routingContext.response().sendFile(filePath);
 	}
 
 	public void responeSuccess(Object data) {
