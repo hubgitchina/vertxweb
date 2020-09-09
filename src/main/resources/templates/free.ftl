@@ -11,8 +11,8 @@
 </head>
 <body>
 <h1>${msg}</h1>
-<img src="${path}">
-<form action="/user/upload" method="post" enctype="multipart/form-data">
+<img src="${path}" />
+<form action="/file/upload" method="post" enctype="multipart/form-data">
     <div>
         <label for="name">选择上传文件</label>
         <input type="file" name="file">
@@ -22,7 +22,7 @@
     </div>
 </form>
 
-<form action="/user/download" method="post">
+<form action="/file/download" method="post">
     <div class="button">
         <button type="submit">下载</button>
     </div>

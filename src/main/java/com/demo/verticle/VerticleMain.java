@@ -93,6 +93,10 @@ public class VerticleMain extends AbstractVerticle {
 		// CSS，IMAGE，JS等静态资源设置
 		router.route("/static/*").handler(StaticHandler.create("static"));
 
+		/** 映射服务器文件上传目录 */
+		String uploadFolder = environment.getProperty("file.uploadFolder");
+		router.route("/upload/file/*").handler(StaticHandler.create(uploadFolder));
+
 		// 编写一个get方法
 		for (String packagePath : controllerBasePackage) {
 			registerController(router, packagePath);
