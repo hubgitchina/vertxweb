@@ -80,7 +80,7 @@ public class VertxwebApplication {
 			if (res.succeeded()) {
 				logger.info("Deployment id is [{}]", res.result());
 			} else {
-				logger.info("Deployment failed!");
+				logger.info("Deployment failed: {}", res.cause().getMessage());
 			}
 		});
 
@@ -92,7 +92,7 @@ public class VertxwebApplication {
 			if (res.succeeded()) {
 				logger.info("Work Verticle Deployment id is [{}]", res.result());
 			} else {
-				logger.info("Work Verticle Deployment failed!");
+				logger.info("Work Verticle Deployment failed: {}", res.cause().getMessage());
 			}
 		});
 	}

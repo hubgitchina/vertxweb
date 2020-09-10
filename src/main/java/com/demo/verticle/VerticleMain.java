@@ -97,6 +97,9 @@ public class VerticleMain extends AbstractVerticle {
 		String uploadFolder = environment.getProperty("file.uploadFolder");
 		router.route("/upload/file/*").handler(StaticHandler.create(uploadFolder));
 
+		//Linux下部署时会提示【root cannot start with /】，可使用该方式解决
+//		router.route("/upload/file/*").handler(StaticHandler.create().setAllowRootFileSystemAccess(true).setWebRoot(uploadFolder));
+
 		// 编写一个get方法
 		for (String packagePath : controllerBasePackage) {
 			registerController(router, packagePath);
