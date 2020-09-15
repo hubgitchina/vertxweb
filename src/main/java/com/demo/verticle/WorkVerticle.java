@@ -7,13 +7,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.demo.service.ProxyAsyncService;
 import com.demo.service.UserAsyncService;
 import com.demo.util.EventBusConstants;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.jdbc.JDBCClient;
+import io.vertx.serviceproxy.ServiceBinder;
 
 /**
  * @ClassName: WorkVerticle
@@ -29,6 +34,9 @@ public class WorkVerticle extends AbstractVerticle {
 
 	@Autowired
 	private UserAsyncService userAsyncService;
+
+	@Autowired
+	private JDBCClient jdbcClient;
 
 	@Override
 	public void start() throws Exception {
@@ -61,6 +69,12 @@ public class WorkVerticle extends AbstractVerticle {
 			// 注册完成后通知事件,适用于集群中比较慢的情况下
 			logger.info("注册处理器结果：{}", res.succeeded());
 		});
+
+		/** 注册代理服务 */
+		ProxyAsyncService proxyService = ProxyAsyncService.create(jdbcClient);
+		MessageConsumer<JsonObject> consumerProxy = new ServiceBinder(vertx)
+				.setAddress(ProxyAsyncService.SERVICE_ADDRESS)
+				.register(ProxyAsyncService.class, proxyService);
 
 		// 撤销处理器
 		// consumer.unregister();

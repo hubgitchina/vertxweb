@@ -17,6 +17,7 @@ import com.demo.enums.RequestMethod;
 import com.demo.handler.UserHandler;
 import com.demo.model.LoginModel;
 import com.demo.model.response.ResponeWrapper;
+import com.demo.service.ProxyAsyncService;
 import com.demo.service.RedisService;
 import com.demo.service.UserAsyncService;
 import com.demo.util.EventBusConstants;
@@ -173,6 +174,36 @@ public class UserController {
 					vertxRequest.buildVertxRespone().responseFail(result.cause().getMessage());
 				}
 			});
+		};
+	}
+
+	/**
+	 * @Author wangpeng
+	 * @Description 通过vertx-service-proxy服务代理调用远程服务方法
+	 * @Date 14:29
+	 * @Param
+	 * @return
+	 */
+	@RequestBody
+	@RequestMapping(value = "/getAllTag")
+	public ControllerHandler getAllTag() {
+
+		return vertxRequest -> {
+			try {
+				/** 创建服务代理，代替事件总线，调用远程服务方法 */
+				ProxyAsyncService proxyService = ProxyAsyncService.createProxy(vertx,
+						ProxyAsyncService.SERVICE_ADDRESS);
+				proxyService.queryTag(res -> {
+					if (res.succeeded()) {
+						JsonArray result = res.result();
+						vertxRequest.buildVertxRespone().responeSuccess(result);
+					} else {
+						vertxRequest.buildVertxRespone().responseFail(res.cause().getMessage());
+					}
+				});
+			} catch (Exception e) {
+				vertxRequest.buildVertxRespone().responseFail(e.getMessage());
+			}
 		};
 	}
 
