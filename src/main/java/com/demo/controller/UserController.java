@@ -27,6 +27,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.StaticHandler;
 
 /**
@@ -91,12 +92,26 @@ public class UserController {
 	}
 
 	@RequestBody
-	@RequestMapping(value = "/login", method = RequestMethod.POST)
+	@RequestMapping(value = "/userLogin", method = RequestMethod.POST)
 	public ControllerHandler userLogin() {
 
 		return vertxRequest -> {
 			LoginModel loginModel = vertxRequest.getBodyJsonToBean(LoginModel.class);
 			vertxRequest.buildVertxRespone().responeSuccess(loginModel);
+		};
+	}
+
+	@RequestBody
+	@RequestMapping(value = "/login", method = RequestMethod.POST)
+	public ControllerHandler login() {
+
+		return vertxRequest -> {
+			String userName = vertxRequest.getParam("username").get();
+			vertxRequest.buildVertxRespone().responeSuccess(userName);
+
+			Session session = vertxRequest.getRoutingContext().session();
+			session.put("loginName", userName);
+			session.put("userId", "111");
 		};
 	}
 

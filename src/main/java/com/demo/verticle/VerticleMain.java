@@ -19,6 +19,7 @@ import com.demo.annotation.RequestBlockingHandler;
 import com.demo.annotation.RequestBody;
 import com.demo.annotation.RequestMapping;
 import com.demo.config.SpringBootContext;
+import com.demo.handler.SessionCheckHandler;
 import com.demo.handler.TokenCheckHandler;
 import com.demo.util.ClazzUtils;
 import com.demo.vertx.VerticleUtils;
@@ -32,7 +33,9 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.FaviconHandler;
+import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.ext.web.sstore.LocalSessionStore;
 
 /**
  * @ClassName: VerticleMain
@@ -67,8 +70,28 @@ public class VerticleMain extends AbstractVerticle {
 		// 路由
 		Router router = Router.router(vertx);
 
+		router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+
+		SessionCheckHandler sessionCheckHandler = SpringBootContext.getApplicationContext()
+				.getBean(SessionCheckHandler.class);
+
+		// 添加session拦截器
+		router.route().path("/user/*").handler(sessionCheckHandler);
+
+		// router.route().handler(routingContext -> {
+		// Session session = routingContext.session();
+		// Integer cnt = session.get("hitcount");
+		// cnt = (cnt == null ? 0 : cnt) + 1;
+		// session.put("hitcount", cnt);
+		// routingContext.response().putHeader("content-type", "text/html")
+		// .end("<html><body><h1>Hitcount: " + cnt + "</h1></body></html>");
+		// });
+
 		TokenCheckHandler tokenCheckHandler = SpringBootContext.getApplicationContext()
 				.getBean(TokenCheckHandler.class);
+
+		// 添加token拦截器
+		router.route().path("/user1/*").handler(tokenCheckHandler);
 
 		ConfigurableEnvironment environment = SpringBootContext.getApplicationContext()
 				.getEnvironment();
@@ -84,9 +107,6 @@ public class VerticleMain extends AbstractVerticle {
 						.setUploadsDirectory(System.getProperty("java.io.tmpdir"))
 						.setDeleteUploadedFilesOnEnd(true));
 
-		// 添加token拦截器
-		router.route().path("/user1/*").handler(tokenCheckHandler);
-
 		// favicon.ico图标设置
 		router.route("/favicon.ico").handler(FaviconHandler.create("static/images/favicon.ico"));
 
@@ -97,8 +117,8 @@ public class VerticleMain extends AbstractVerticle {
 		String uploadFolder = environment.getProperty("file.uploadFolder");
 		router.route("/upload/file/*").handler(StaticHandler.create(uploadFolder));
 
-		//Linux下部署时会提示【root cannot start with /】，可使用该方式解决
-//		router.route("/upload/file/*").handler(StaticHandler.create().setAllowRootFileSystemAccess(true).setWebRoot(uploadFolder));
+		// Linux下部署时会提示【root cannot start with /】，可使用该方式解决
+		// router.route("/upload/file/*").handler(StaticHandler.create().setAllowRootFileSystemAccess(true).setWebRoot(uploadFolder));
 
 		// 编写一个get方法
 		for (String packagePath : controllerBasePackage) {
