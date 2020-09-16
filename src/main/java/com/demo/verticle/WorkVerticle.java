@@ -17,7 +17,6 @@ import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.serviceproxy.ServiceBinder;
 
 /**
@@ -36,7 +35,7 @@ public class WorkVerticle extends AbstractVerticle {
 	private UserAsyncService userAsyncService;
 
 	@Autowired
-	private JDBCClient jdbcClient;
+	private ProxyAsyncService proxyService;
 
 	@Override
 	public void start() throws Exception {
@@ -71,7 +70,6 @@ public class WorkVerticle extends AbstractVerticle {
 		});
 
 		/** 注册代理服务 */
-		ProxyAsyncService proxyService = ProxyAsyncService.create(jdbcClient);
 		MessageConsumer<JsonObject> consumerProxy = new ServiceBinder(vertx)
 				.setAddress(ProxyAsyncService.SERVICE_ADDRESS)
 				.register(ProxyAsyncService.class, proxyService);

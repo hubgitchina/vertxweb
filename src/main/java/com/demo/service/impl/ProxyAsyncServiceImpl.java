@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.demo.service.BaseAsyncService;
@@ -30,13 +31,8 @@ public class ProxyAsyncServiceImpl implements ProxyAsyncService, BaseAsyncServic
 
 	private final Logger logger = LoggerFactory.getLogger(ProxyAsyncServiceImpl.class);
 
-	// @Autowired
+	@Autowired
 	private JDBCClient jdbcClient;
-
-	public ProxyAsyncServiceImpl(JDBCClient jdbcClient) {
-
-		this.jdbcClient = jdbcClient;
-	}
 
 	@Override
 	public void close() {
@@ -47,12 +43,6 @@ public class ProxyAsyncServiceImpl implements ProxyAsyncService, BaseAsyncServic
 	@Override
 	public void queryTag(Handler<AsyncResult<JsonArray>> resultHandler) {
 
-		// JsonObject jsonObject = new JsonObject();
-		// jsonObject.put("name","测试");
-		// JsonArray jsonArray = new JsonArray();
-		// jsonArray.add(jsonObject);
-		//
-		// Future.succeededFuture(jsonArray).onComplete(resultHandler);
 		try {
 			String sql = "select * from tag";
 			// 构造参数
