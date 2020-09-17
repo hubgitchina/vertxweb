@@ -38,7 +38,7 @@ public class SessionCheckHandler implements Handler<RoutingContext> {
 
 			// 继续下一个路由
 			event.next();
-		}else{
+		} else {
 			Session session = event.session();
 			String userId = session.get("userId");
 			if (StringUtils.isBlank(userId)) {

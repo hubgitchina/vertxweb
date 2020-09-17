@@ -27,6 +27,9 @@ import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
+import io.vertx.ext.auth.jdbc.JDBCAuthentication;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.StaticHandler;
 
@@ -101,17 +104,60 @@ public class UserController {
 		};
 	}
 
+	@Autowired
+	private JDBCAuthentication authenticationProvider;
+
 	@RequestBody
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	public ControllerHandler login() {
 
 		return vertxRequest -> {
 			String userName = vertxRequest.getParam("username").get();
-			vertxRequest.buildVertxRespone().responeSuccess(userName);
+			String password = vertxRequest.getParam("password").get();
 
-			Session session = vertxRequest.getRoutingContext().session();
-			session.put("loginName", userName);
-			session.put("userId", "111");
+			/**
+			 * 使用vertx生成密码，加密盐为【fb721a736266e434】，密码为【1】，生成密码【$sha1$fb721a736266e434$NWoZK3kTsExUV00Ywo1G5jlUKKs】
+			 */
+			// HashingStrategy hashingStrategy = new HashingStrategyImpl();
+			// HashingAlgorithm hashingAlgorithm = new SHA1();
+			// ((HashingStrategyImpl) hashingStrategy).add(hashingAlgorithm);
+			// String demoPassword = hashingStrategy.hash("sha1", null, "fb721a736266e434",
+			// "1");
+			// logger.info("生成示例密码：{}", demoPassword);
+
+			/**
+			 * 使用vertx生成密码，加密盐为【fb721a736266e434】，密码为【1】，生成密码【$sha1$fb721a736266e434$NWoZK3kTsExUV00Ywo1G5jlUKKs】
+			 */
+			String demoPassword = authenticationProvider.hash("sha1", "fb721a736266e434", "1");
+			logger.info("生成示例密码：{}", demoPassword);
+
+			// UsernamePasswordCredentials usernamePasswordCredentials = new
+			// UsernamePasswordCredentials(
+			// "test", "1");
+
+			UsernamePasswordCredentials usernamePasswordCredentials = new UsernamePasswordCredentials(
+					userName, password);
+
+			authenticationProvider.authenticate(usernamePasswordCredentials, userAsyncResult -> {
+				if (userAsyncResult.succeeded()) {
+					logger.info("认证成功");
+
+					User user = userAsyncResult.result();
+
+					Session session = vertxRequest.getRoutingContext().session();
+					session.put("loginName", user.principal().getString("username"));
+					session.put("userId", "111");
+					session.put("user", user);
+
+					vertxRequest.buildVertxRespone().responeSuccess(userName);
+
+				} else {
+					logger.error("认证失败：{}", userAsyncResult.cause().getMessage());
+
+					vertxRequest.buildVertxRespone()
+							.responseFail(userAsyncResult.cause().getMessage());
+				}
+			});
 		};
 	}
 
