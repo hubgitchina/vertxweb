@@ -23,6 +23,7 @@ import com.demo.service.UserAsyncService;
 import com.demo.util.EventBusConstants;
 import com.google.common.collect.Maps;
 
+import auth.MyJDBCAuth;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonArray;
@@ -107,6 +108,9 @@ public class UserController {
 	@Autowired
 	private JDBCAuthentication authenticationProvider;
 
+	@Autowired
+	private MyJDBCAuth myJDBCAuth;
+
 	@RequestBody
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	public ControllerHandler login() {
@@ -115,15 +119,44 @@ public class UserController {
 			String userName = vertxRequest.getParam("username").get();
 			String password = vertxRequest.getParam("password").get();
 
-			/**
-			 * 使用vertx生成密码，加密盐为【fb721a736266e434】，密码为【1】，生成密码【$sha1$fb721a736266e434$NWoZK3kTsExUV00Ywo1G5jlUKKs】
-			 */
-			// HashingStrategy hashingStrategy = new HashingStrategyImpl();
-			// HashingAlgorithm hashingAlgorithm = new SHA1();
-			// ((HashingStrategyImpl) hashingStrategy).add(hashingAlgorithm);
-			// String demoPassword = hashingStrategy.hash("sha1", null, "fb721a736266e434",
-			// "1");
-			// logger.info("生成示例密码：{}", demoPassword);
+			UsernamePasswordCredentials usernamePasswordCredentials = new UsernamePasswordCredentials(
+					userName, password);
+
+			myJDBCAuth.authenticate(usernamePasswordCredentials, res -> {
+				if (res.succeeded()) {
+					// 获取到授权接口
+					logger.info("认证成功");
+
+					User user = res.result();
+
+					Session session = vertxRequest.getRoutingContext().session();
+					if (session != null) {
+						session.regenerateId(); // 更新session id
+					}
+
+					session.put("loginName", user.principal().getString("username"));
+					session.put("userId", "111");
+
+					vertxRequest.getRoutingContext().setUser(user);
+
+					vertxRequest.buildVertxRespone().responeSuccess(user);
+				} else {
+					// 认证失败
+					logger.error("认证失败：{}", res.cause().getMessage());
+
+					vertxRequest.buildVertxRespone().responseFail(res.cause().getMessage());
+				}
+			});
+		};
+	}
+
+	@RequestBody
+	@RequestMapping(value = "/loginJDBCAuthentication", method = RequestMethod.POST)
+	public ControllerHandler loginJDBCAuthentication() {
+
+		return vertxRequest -> {
+			String userName = vertxRequest.getParam("username").get();
+			String password = vertxRequest.getParam("password").get();
 
 			/**
 			 * 使用vertx生成密码，加密盐为【fb721a736266e434】，密码为【1】，生成密码【$sha1$fb721a736266e434$NWoZK3kTsExUV00Ywo1G5jlUKKs】
@@ -145,11 +178,16 @@ public class UserController {
 					User user = userAsyncResult.result();
 
 					Session session = vertxRequest.getRoutingContext().session();
+					if (session != null) {
+						session.regenerateId(); // 更新session id
+					}
+
 					session.put("loginName", user.principal().getString("username"));
 					session.put("userId", "111");
-					session.put("user", user);
 
-					vertxRequest.buildVertxRespone().responeSuccess(userName);
+					vertxRequest.getRoutingContext().setUser(user);
+
+					vertxRequest.buildVertxRespone().responeSuccess(user);
 
 				} else {
 					logger.error("认证失败：{}", userAsyncResult.cause().getMessage());
