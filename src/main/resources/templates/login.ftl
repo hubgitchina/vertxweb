@@ -11,7 +11,7 @@
 </head>
 <body>
 <h1>系统登录</h1>
-<form action="/user/login" method="post">
+<form action="/login" method="post">
     <div>
         <input name="username" placeholder="请输入账号" class="name" required />
         <input name="password" placeholder="请输入密码" class="password" type="password" required />

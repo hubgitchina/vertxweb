@@ -13,9 +13,7 @@ import com.demo.annotation.RequestBlockingHandler;
 import com.demo.annotation.RequestBody;
 import com.demo.annotation.RequestMapping;
 import com.demo.base.ControllerHandler;
-import com.demo.enums.RequestMethod;
 import com.demo.handler.UserHandler;
-import com.demo.model.LoginModel;
 import com.demo.model.response.ResponeWrapper;
 import com.demo.service.ProxyAsyncService;
 import com.demo.service.RedisService;
@@ -23,15 +21,10 @@ import com.demo.service.UserAsyncService;
 import com.demo.util.EventBusConstants;
 import com.google.common.collect.Maps;
 
-import auth.MyJDBCAuth;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.User;
-import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
-import io.vertx.ext.auth.jdbc.JDBCAuthentication;
-import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.StaticHandler;
 
 /**
@@ -92,110 +85,6 @@ public class UserController {
 				e.printStackTrace();
 			}
 			vertxRequest.buildVertxRespone().respone(new ResponeWrapper(10001, null, "未找到女盆友"));
-		};
-	}
-
-	@RequestBody
-	@RequestMapping(value = "/userLogin", method = RequestMethod.POST)
-	public ControllerHandler userLogin() {
-
-		return vertxRequest -> {
-			LoginModel loginModel = vertxRequest.getBodyJsonToBean(LoginModel.class);
-			vertxRequest.buildVertxRespone().responeSuccess(loginModel);
-		};
-	}
-
-	@Autowired
-	private JDBCAuthentication authenticationProvider;
-
-	@Autowired
-	private MyJDBCAuth myJDBCAuth;
-
-	@RequestBody
-	@RequestMapping(value = "/login", method = RequestMethod.POST)
-	public ControllerHandler login() {
-
-		return vertxRequest -> {
-			String userName = vertxRequest.getParam("username").get();
-			String password = vertxRequest.getParam("password").get();
-
-			UsernamePasswordCredentials usernamePasswordCredentials = new UsernamePasswordCredentials(
-					userName, password);
-
-			myJDBCAuth.authenticate(usernamePasswordCredentials, res -> {
-				if (res.succeeded()) {
-					// 获取到授权接口
-					logger.info("认证成功");
-
-					User user = res.result();
-
-					Session session = vertxRequest.getRoutingContext().session();
-					if (session != null) {
-						session.regenerateId(); // 更新session id
-					}
-
-					session.put("loginName", user.principal().getString("username"));
-					session.put("userId", "111");
-
-					vertxRequest.getRoutingContext().setUser(user);
-
-					vertxRequest.buildVertxRespone().responeSuccess(user);
-				} else {
-					// 认证失败
-					logger.error("认证失败：{}", res.cause().getMessage());
-
-					vertxRequest.buildVertxRespone().responseFail(res.cause().getMessage());
-				}
-			});
-		};
-	}
-
-	@RequestBody
-	@RequestMapping(value = "/loginJDBCAuthentication", method = RequestMethod.POST)
-	public ControllerHandler loginJDBCAuthentication() {
-
-		return vertxRequest -> {
-			String userName = vertxRequest.getParam("username").get();
-			String password = vertxRequest.getParam("password").get();
-
-			/**
-			 * 使用vertx生成密码，加密盐为【fb721a736266e434】，密码为【1】，生成密码【$sha1$fb721a736266e434$NWoZK3kTsExUV00Ywo1G5jlUKKs】
-			 */
-			String demoPassword = authenticationProvider.hash("sha1", "fb721a736266e434", "1");
-			logger.info("生成示例密码：{}", demoPassword);
-
-			// UsernamePasswordCredentials usernamePasswordCredentials = new
-			// UsernamePasswordCredentials(
-			// "test", "1");
-
-			UsernamePasswordCredentials usernamePasswordCredentials = new UsernamePasswordCredentials(
-					userName, password);
-
-			authenticationProvider.authenticate(usernamePasswordCredentials, userAsyncResult -> {
-				if (userAsyncResult.succeeded()) {
-					logger.info("认证成功");
-
-					User user = userAsyncResult.result();
-
-					Session session = vertxRequest.getRoutingContext().session();
-					if (session != null) {
-						session.regenerateId(); // 更新session id
-					}
-
-					session.put("loginName", user.principal().getString("username"));
-					session.put("userId", "111");
-
-					vertxRequest.getRoutingContext().setUser(user);
-
-					vertxRequest.buildVertxRespone().responeSuccess(user);
-
-				} else {
-					logger.error("认证失败：{}", userAsyncResult.cause().getMessage());
-
-					vertxRequest.buildVertxRespone()
-							.responseFail(userAsyncResult.cause().getMessage());
-				}
-			});
 		};
 	}
 

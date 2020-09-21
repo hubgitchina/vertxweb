@@ -33,7 +33,7 @@ public class SessionCheckHandler implements Handler<RoutingContext> {
 
 		String requestUrl = event.request().path();
 		logger.info("进入 Session 拦截器, 请求路径：{}", requestUrl);
-		if ("/user/login".equals(requestUrl)) {
+		if ("/login".equals(requestUrl)) {
 			logger.info("登录请求，不做session验证");
 
 			// 继续下一个路由

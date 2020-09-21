@@ -24,17 +24,16 @@ import com.demo.handler.TokenCheckHandler;
 import com.demo.util.ClazzUtils;
 import com.demo.vertx.VerticleUtils;
 
+import auth.MyJDBCAuth;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServer;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.FaviconHandler;
-import io.vertx.ext.web.handler.SessionHandler;
-import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 
 /**
@@ -72,11 +71,24 @@ public class VerticleMain extends AbstractVerticle {
 
 		router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
+//		AuthenticationProvider myJDBCAuth = SpringBootContext.getApplicationContext()
+//				.getBean(MyJDBCAuth.class);
+
+		// 当请求中没有session时，自动跳转到登录页
+//		RedirectAuthHandler authHandler = RedirectAuthHandler.create(myJDBCAuth,
+//				"/freeMarker/login");
+//		router.route().path("/user/*").handler(authHandler);
+
+		// vertx内置登录处理器
+		// FormLoginHandler formLoginHandler =
+		// FormLoginHandler.create(myJDBCAuth).setDirectLoggedInOKURL("/index.html");
+		// router.route("/login").handler(formLoginHandler);
+
 		SessionCheckHandler sessionCheckHandler = SpringBootContext.getApplicationContext()
 				.getBean(SessionCheckHandler.class);
 
 		// 添加session拦截器
-		router.route().path("/user/*").handler(sessionCheckHandler);
+		router.route().path("/*").handler(sessionCheckHandler);
 
 		// router.route().handler(routingContext -> {
 		// Session session = routingContext.session();

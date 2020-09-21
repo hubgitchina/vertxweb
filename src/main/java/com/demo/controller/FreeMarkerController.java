@@ -32,6 +32,22 @@ public class FreeMarkerController {
 	@Autowired
 	private FreeMarkerTemplateEngine templateEngine;
 
+	@RequestMapping("/login")
+	public Handler<RoutingContext> login() {
+
+		return routingContext -> {
+
+			JsonObject data = new JsonObject();
+			templateEngine.render(data, "templates/login", res -> {
+				if (res.succeeded()) {
+					routingContext.response().end(res.result());
+				} else {
+					routingContext.fail(res.cause());
+				}
+			});
+		};
+	}
+
 	@RequestMapping("/list")
 	public Handler<RoutingContext> list() {
 
