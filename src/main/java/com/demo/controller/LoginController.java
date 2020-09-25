@@ -1,5 +1,9 @@
 package com.demo.controller;
 
+import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,9 +50,28 @@ public class LoginController {
 	@Autowired
 	private MyJDBCAuth myJDBCAuth;
 
+	@Autowired
+	private FreeMarkerTemplateEngine templateEngine;
+
+	@RequestMapping("/login")
+	public Handler<RoutingContext> loginPage() {
+
+		return routingContext -> {
+
+			JsonObject data = new JsonObject();
+			templateEngine.render(data, "templates/login", res -> {
+				if (res.succeeded()) {
+					routingContext.response().end(res.result());
+				} else {
+					routingContext.fail(res.cause());
+				}
+			});
+		};
+	}
+
 	@RequestBody
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
-	public ControllerHandler login() {
+	public ControllerHandler loginMethod() {
 
 		return vertxRequest -> {
 			String userName = vertxRequest.getParam("username").get();
@@ -69,8 +92,8 @@ public class LoginController {
 						session.regenerateId(); // 更新session id
 					}
 
-					session.put("loginName", user.principal().getString("username"));
-					session.put("userId", "111");
+					session.put("loginName", user.principal().getString("userName"));
+					session.put("userId", user.principal().getString("userId"));
 
 					vertxRequest.getRoutingContext().setUser(user);
 

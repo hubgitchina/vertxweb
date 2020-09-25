@@ -42,21 +42,23 @@ public class SessionCheckHandler implements Handler<RoutingContext> {
 			Session session = event.session();
 			String userId = session.get("userId");
 			if (StringUtils.isBlank(userId)) {
-				JsonObject data = new JsonObject();
-				templateEngine.render(data, "templates/login", res -> {
-					if (res.succeeded()) {
-						event.response().end(res.result());
-					} else {
-						event.fail(res.cause());
-					}
-				});
+				event.redirect("/login");
+
+//				JsonObject data = new JsonObject();
+//				templateEngine.render(data, "templates/login", res -> {
+//					if (res.succeeded()) {
+//						event.response().end(res.result());
+//					} else {
+//						event.fail(res.cause());
+//					}
+//				});
 
 				logger.error("session验证失败，跳转登录");
 			} else {
 				logger.info("session验证通过");
 
 				String loginName = session.get("loginName");
-				MDC.put("userid", userId);
+				MDC.put("userId", userId);
 				MDC.put("loginName", loginName);
 
 				// 继续下一个路由
