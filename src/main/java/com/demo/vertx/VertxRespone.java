@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.demo.model.response.PageResponeWrapper;
 import com.demo.model.response.ResponeWrapper;
 import com.demo.util.JsonUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -57,6 +58,23 @@ public class VertxRespone {
 		}
 	}
 
+	public void responePage(PageResponeWrapper pageResponeWrapper) {
+
+		HttpServerResponse httpServerResponse = routingContext.response();
+		httpServerResponse.putHeader("Content-Type", "text/json;charset=utf-8");
+		// httpServerResponse.putHeader("Access-Control-Allow-Origin", "*");
+		// httpServerResponse.putHeader("Access-Control-Allow-Credentials", "true");
+		// httpServerResponse.putHeader("Content-Disposition", "attachment");
+
+		try {
+			// 转换为JSON 字符串
+			httpServerResponse.end(JsonUtils.objectToJson(pageResponeWrapper));
+		} catch (JsonProcessingException e) {
+			logger.error("serialize object to json fail wrapper: [{}]", pageResponeWrapper);
+			e.printStackTrace();
+		}
+	}
+
 	public void responseFile(String fileName, String filePath, String contentType) {
 
 		if (StringUtils.isBlank(contentType)) {
@@ -86,6 +104,12 @@ public class VertxRespone {
 	public void responeSuccess(Object data) {
 
 		respone(new ResponeWrapper(HTTP_OK, data, "操作成功"));
+	}
+
+	public void responePageSuccess(PageResponeWrapper pageResponeWrapper) {
+
+		pageResponeWrapper.setCode(HTTP_OK);
+		responePage(pageResponeWrapper);
 	}
 
 	public void responseFail(String message) {

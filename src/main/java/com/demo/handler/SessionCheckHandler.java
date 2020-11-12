@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
@@ -38,20 +37,25 @@ public class SessionCheckHandler implements Handler<RoutingContext> {
 
 			// 继续下一个路由
 			event.next();
+		} else if ("/login2".equals(requestUrl)) {
+			logger.info("登录验证，不做session验证");
+
+			// 继续下一个路由
+			event.next();
 		} else {
 			Session session = event.session();
 			String userId = session.get("userId");
 			if (StringUtils.isBlank(userId)) {
 				event.redirect("/login");
 
-//				JsonObject data = new JsonObject();
-//				templateEngine.render(data, "templates/login", res -> {
-//					if (res.succeeded()) {
-//						event.response().end(res.result());
-//					} else {
-//						event.fail(res.cause());
-//					}
-//				});
+				// JsonObject data = new JsonObject();
+				// templateEngine.render(data, "templates/login", res -> {
+				// if (res.succeeded()) {
+				// event.response().end(res.result());
+				// } else {
+				// event.fail(res.cause());
+				// }
+				// });
 
 				logger.error("session验证失败，跳转登录");
 			} else {

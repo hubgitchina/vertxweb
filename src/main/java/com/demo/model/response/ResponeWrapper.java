@@ -13,7 +13,7 @@ public class ResponeWrapper<T> {
 
 	private int code;
 	private T data;
-	private String message;
+	private String msg;
 
 	public int getCode() {
 
@@ -35,25 +35,32 @@ public class ResponeWrapper<T> {
 		this.data = data;
 	}
 
-	public String getMessage() {
+	public String getMsg() {
 
-		return message;
+		return msg;
 	}
 
-	public void setMessage(String message) {
+	public void setMsg(String msg) {
 
-		this.message = message;
+		this.msg = msg;
 	}
 
 	public ResponeWrapper() {
 
 	}
 
-	public ResponeWrapper(int code, T data, String message) {
+	public ResponeWrapper(T data) {
+
+		super();
+
+		this.data = data;
+	}
+
+	public ResponeWrapper(int code, T data, String msg) {
 
 		this.code = code;
 		this.data = data;
-		this.message = message;
+		this.msg = msg;
 	}
 
 	public static final ResponeWrapper<String> RESPONE_SUCCESS = new ResponeWrapper<>(HTTP_OK, null,

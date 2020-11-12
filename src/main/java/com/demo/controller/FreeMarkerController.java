@@ -48,8 +48,8 @@ public class FreeMarkerController {
 		};
 	}
 
-	@RequestMapping("/list")
-	public Handler<RoutingContext> list() {
+	@RequestMapping("/free")
+	public Handler<RoutingContext> demo() {
 
 		return routingContext -> {
 
@@ -57,6 +57,23 @@ public class FreeMarkerController {
 			data.put("msg", "FreeMarker后台变量");
 			data.put("path", staticAccessPath + "测试图片.jpg");
 			templateEngine.render(data, "templates/free", res -> {
+				if (res.succeeded()) {
+					routingContext.response().end(res.result());
+				} else {
+					routingContext.fail(res.cause());
+				}
+			});
+		};
+	}
+
+	@RequestMapping("/list")
+	public Handler<RoutingContext> list() {
+
+		return routingContext -> {
+
+			JsonObject data = new JsonObject();
+			data.put("msg", "本周菜谱");
+			templateEngine.render(data, "templates/list", res -> {
 				if (res.succeeded()) {
 					routingContext.response().end(res.result());
 				} else {

@@ -1,9 +1,8 @@
 package com.demo.controller;
 
-import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
+import com.alibaba.fastjson.JSONObject;
+import com.demo.util.DateUtil;
+import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +15,14 @@ import com.demo.enums.RequestMethod;
 import com.demo.model.LoginModel;
 
 import auth.MyJDBCAuth;
+import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.auth.jdbc.JDBCAuthentication;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
 
 /**
  * @ClassName: LoginController
@@ -58,6 +61,8 @@ public class LoginController {
 
 		return routingContext -> {
 
+			logger.info("进入登录页");
+
 			JsonObject data = new JsonObject();
 			templateEngine.render(data, "templates/login", res -> {
 				if (res.succeeded()) {
@@ -69,9 +74,69 @@ public class LoginController {
 		};
 	}
 
+	@RequestMapping(value = "/login2", method = RequestMethod.POST)
+	public Handler<RoutingContext> loginMethod() {
+
+		return routingContext -> {
+			String userName = routingContext.request().getParam("username");
+			String password = routingContext.request().getParam("password");
+
+			UsernamePasswordCredentials usernamePasswordCredentials = new UsernamePasswordCredentials(
+					userName, password);
+
+			myJDBCAuth.authenticate(usernamePasswordCredentials, res -> {
+				if (res.succeeded()) {
+					// 获取到授权接口
+					logger.info("认证成功");
+
+					User user = res.result();
+
+					Session session = routingContext.session();
+					if (session != null) {
+						session.regenerateId(); // 更新session id
+					}
+
+					session.put("loginName", user.principal().getString("userName"));
+					session.put("userId", user.principal().getString("userId"));
+
+					routingContext.setUser(user);
+
+					LocalDate[] weekDate = DateUtil.getBeginAndEndOfTheWeek(0);
+
+					JSONObject data = new JSONObject();
+
+					data.put("msg", "本周菜单");
+
+					data.put("monday", weekDate[0].toString("yyyy-MM-dd"));
+					data.put("tuesday", weekDate[1].toString("yyyy-MM-dd"));
+					data.put("wednesday", weekDate[2].toString("yyyy-MM-dd"));
+					data.put("thursday", weekDate[3].toString("yyyy-MM-dd"));
+					data.put("friday", weekDate[4].toString("yyyy-MM-dd"));
+					data.put("saturday", weekDate[5].toString("yyyy-MM-dd"));
+					data.put("sunday", weekDate[6].toString("yyyy-MM-dd"));
+
+					// routingContext.redirect("/freeMarker/list");
+
+					templateEngine.render(data, "templates/list", res2 -> {
+						if (res2.succeeded()) {
+							routingContext.response().end(res2.result());
+						} else {
+							routingContext.fail(res2.cause());
+						}
+					});
+				} else {
+					// 认证失败
+					logger.error("认证失败：{}", res.cause().getMessage());
+
+					routingContext.fail(res.cause());
+				}
+			});
+		};
+	}
+
 	@RequestBody
-	@RequestMapping(value = "/login", method = RequestMethod.POST)
-	public ControllerHandler loginMethod() {
+	@RequestMapping(value = "/login3", method = RequestMethod.POST)
+	public ControllerHandler loginMethod3() {
 
 		return vertxRequest -> {
 			String userName = vertxRequest.getParam("username").get();
