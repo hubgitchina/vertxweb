@@ -1,18 +1,21 @@
 package com.demo.controller;
 
-import com.alibaba.fastjson.JSONObject;
-import com.demo.util.DateUtil;
+import java.util.List;
+
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.alibaba.fastjson.JSONObject;
 import com.demo.annotation.RequestBody;
 import com.demo.annotation.RequestMapping;
 import com.demo.base.ControllerHandler;
 import com.demo.enums.RequestMethod;
 import com.demo.model.LoginModel;
+import com.demo.util.DateUtil;
+import com.google.common.collect.Lists;
 
 import auth.MyJDBCAuth;
 import io.vertx.core.Handler;
@@ -117,7 +120,7 @@ public class LoginController {
 
 					// routingContext.redirect("/freeMarker/list");
 
-					templateEngine.render(data, "templates/list", res2 -> {
+					templateEngine.render(data, "templates/index", res2 -> {
 						if (res2.succeeded()) {
 							routingContext.response().end(res2.result());
 						} else {

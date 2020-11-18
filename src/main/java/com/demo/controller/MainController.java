@@ -103,4 +103,67 @@ public class MainController {
 			vertxRequest.buildVertxRespone().responePageSuccess(pageResponeWrapper);
 		};
 	}
+
+	@RequestBody
+	@RequestMapping(value = "/getTimeline", method = RequestMethod.POST)
+	public ControllerHandler getTimeline() {
+
+		return vertxRequest -> {
+
+			JSONObject data1 = new JSONObject();
+			data1.put("name", "王五");
+			data1.put("date", "8月18日");
+			data1.put("operation", "订餐");
+
+			JSONObject data2 = new JSONObject();
+			data2.put("name", "李四");
+			data2.put("date", "8月16日");
+			data2.put("operation", "修改菜单");
+
+			JSONObject data3 = new JSONObject();
+			data3.put("name", "张三");
+			data3.put("date", "8月15日");
+			data3.put("operation", "发布菜单");
+
+			List<JSONObject> result = Lists.newArrayListWithCapacity(3);
+			result.add(data1);
+			result.add(data2);
+			result.add(data3);
+
+			vertxRequest.buildVertxRespone().responeSuccess(result);
+		};
+	}
+
+	@RequestBody
+	@RequestMapping(value = "/getMsg", method = RequestMethod.POST)
+	public ControllerHandler getMsg() {
+
+		return vertxRequest -> {
+
+			JSONObject msg1 = new JSONObject();
+			msg1.put("userName", "张爱玲1");
+			msg1.put("msg",
+					"于千万人之中遇到你所要遇到的人，于千万年之中，时间的无涯的荒野中，没有早一步，也没有晚一步，刚巧赶上了，那也没有别的话好说，唯有轻轻的问一声：“噢，原来你也在这里？");
+			msg1.put("date", "4月11日 09:10");
+
+			JSONObject msg2 = new JSONObject();
+			msg2.put("userName", "张爱玲2");
+			msg2.put("msg",
+					"于千万人之中遇到你所要遇到的人，于千万年之中，时间的无涯的荒野中，没有早一步，也没有晚一步，刚巧赶上了，那也没有别的话好说，唯有轻轻的问一声：“噢，原来你也在这里？");
+			msg2.put("date", "5月11日 09:10");
+
+			JSONObject msg3 = new JSONObject();
+			msg3.put("userName", "张爱玲3");
+			msg3.put("msg",
+					"于千万人之中遇到你所要遇到的人，于千万年之中，时间的无涯的荒野中，没有早一步，也没有晚一步，刚巧赶上了，那也没有别的话好说，唯有轻轻的问一声：“噢，原来你也在这里？");
+			msg3.put("date", "6月11日 09:10");
+
+			List<JSONObject> msgList = Lists.newArrayListWithCapacity(3);
+			msgList.add(msg1);
+			msgList.add(msg2);
+			msgList.add(msg3);
+
+			vertxRequest.buildVertxRespone().responeSuccess(msgList);
+		};
+	}
 }
