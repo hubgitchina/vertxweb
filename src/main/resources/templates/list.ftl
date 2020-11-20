@@ -94,7 +94,7 @@
             <h3 style="color: #337ab7;">{{ item.userName }}</h3>
             <p>{{ item.msg }}</p>
             <span>{{ item.date || '' }}</span>
-            <a href="javascript:;" layadmin-event="replyNote" data-id="1"
+            <a href="javascript:;" id="test" onclick="replyNote(event)" data-id="1"
                class="layui-btn layui-btn-xs layuiadmin-reply">回复</a>
         </li>
         {{#  }); }}
@@ -162,11 +162,28 @@
             page: true,
             cols: [[
                 {field: 'id', title: 'ID', align: 'center', hide: true}
-                , {field: 'type', title: '餐别', align: 'center', style: 'background-color: #5792c6; color: #fff;'}
+                // , {field: 'type', title: '餐别', align: 'center', style: 'background-color: #5792c6; color: #fff;'}
+                , {field: 'type', title: '餐别', align: 'center', style: 'color: #F581B1;'}
                 , {
                     field: 'monday', title: '${monday}<br/>星期一', align: 'center'
                     , templet: function (d) {
-                        return d.monday;
+                        var foodHtml = '';
+                        if(d.monday && d.monday.length > 0){
+                            for(var i=0; i<d.monday.length; i++){
+                                var tempFood = d.monday[i];
+                                if(tempFood.isChoose == 1){
+                                    foodHtml += '<div class="layui-bg-blue" style="margin-top: 5px;">'+tempFood.name;
+                                }else{
+                                    foodHtml += '<div class="layui-bg-cyan" style="margin-top: 5px;">'+tempFood.name;
+                                }
+                                for(var j=0; j<tempFood.food.length;j++){
+                                    foodHtml += '<br/>'+tempFood.food[j];
+                                }
+                                foodHtml += '</div>';
+                            }
+                            return foodHtml;
+                        }
+                        return '<div class="layui-bg-blue">无数据</div>';
                     }
                 }
                 , {field: 'tuesday', title: '${tuesday}<br/>星期二', align: 'center'}
@@ -187,31 +204,31 @@
                     "data": res.data //解析数据列表
                 };
             }, done: function (res, curr, count) {
+                /** 设置表头背景色和文字样式 */
                 $('th').css({'background-color': '#009688', 'color': '#fff', 'font-weight': 'bold'});
-                res.data.forEach(function (item, index) {
-                    var tr = $(".layui-table-body tbody tr[data-index='" + index + "']");
-
-                    // tr.find(".laytable-cell-1-0-1").css("background-color", "#5792c6");
-                    // tr.find(".laytable-cell-1-0-1").css("color", "#fff");
-
-                    //如果是已选择，则设置单元格背景色
-                    if (item.isMonday == 1) {
-                        tr.find(".laytable-cell-1-0-2").css("background-color", "#eee");
-                    }
-                    if (item.isTuesday == 1) {
-                        tr.find(".laytable-cell-1-0-3").css("background-color", "#eee");
-                    }
-                    if (item.isWednesday == 1) {
-                        tr.find(".laytable-cell-1-0-4").css("background-color", "#eee");
-                    }
-                    if (item.isThursday == 1) {
-                        tr.find(".laytable-cell-1-0-5").css("background-color", "#eee");
-                    }
-                    if (item.isFriday == 1) {
-                        tr.find(".laytable-cell-1-0-6").css("background-color", "#eee");
-                    }
-
-                });
+                // res.data.forEach(function (item, index) {
+                //     var tr = $(".layui-table-body tbody tr[data-index='" + index + "']");
+                //
+                //     // tr.find(".laytable-cell-1-0-1").css("background-color", "#5792c6");
+                //     // tr.find(".laytable-cell-1-0-1").css("color", "#fff");
+                //
+                //     //如果是已选择，则设置单元格背景色
+                //     if (item.isMonday == 1) {
+                //         tr.find(".laytable-cell-1-0-2").css("background-color", "#eee");
+                //     }
+                //     if (item.isTuesday == 1) {
+                //         tr.find(".laytable-cell-1-0-3").css("background-color", "#eee");
+                //     }
+                //     if (item.isWednesday == 1) {
+                //         tr.find(".laytable-cell-1-0-4").css("background-color", "#eee");
+                //     }
+                //     if (item.isThursday == 1) {
+                //         tr.find(".laytable-cell-1-0-5").css("background-color", "#eee");
+                //     }
+                //     if (item.isFriday == 1) {
+                //         tr.find(".laytable-cell-1-0-6").css("background-color", "#eee");
+                //     }
+                // });
             }
         });
 
@@ -265,6 +282,13 @@
                 });
             }
         });
+
+        replyNote = function (e) {
+            var a = $(e.target).data("id");
+            layer.prompt({title: "回复留言 ID:" + a, formType: 2}, function (e, a) {
+                layer.msg("得到：" + e), layer.close(a)
+            })
+        }
     });
 </script>
 </body>

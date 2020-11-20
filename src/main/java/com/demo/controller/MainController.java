@@ -1,6 +1,7 @@
 package com.demo.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import com.demo.base.ControllerHandler;
 import com.demo.enums.RequestMethod;
 import com.demo.model.response.PageResponeWrapper;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * @ClassName: MainController
@@ -33,11 +35,60 @@ public class MainController {
 
 		return vertxRequest -> {
 
+			List<Map<String, Object>> breakfastList = Lists.newArrayListWithCapacity(3);
+			List<Map<String, Object>> lunchList = Lists.newArrayListWithCapacity(3);
+			List<Map<String, Object>> dinnerList = Lists.newArrayListWithCapacity(3);
+
+			Map<String, Object> foodA = Maps.newHashMapWithExpectedSize(3);
+			foodA.put("isChoose", 1);
+			foodA.put("name", "套餐A");
+			foodA.put("food", new String[] { "豆浆", "油条" });
+
+			Map<String, Object> foodB = Maps.newHashMapWithExpectedSize(3);
+			foodB.put("isChoose", 0);
+			foodB.put("name", "套餐B");
+			foodB.put("food", new String[] { "油条", "豆浆" });
+
+			Map<String, Object> foodC = Maps.newHashMapWithExpectedSize(3);
+			foodC.put("isChoose", 0);
+			foodC.put("name", "套餐C");
+			foodC.put("food", new String[] { "面窝", "白粥" });
+
+			breakfastList.add(foodA);
+			breakfastList.add(foodB);
+			breakfastList.add(foodC);
+
+			Map<String, Object> foodAA = Maps.newHashMapWithExpectedSize(3);
+			foodAA.put("isChoose", 0);
+			foodAA.put("name", "套餐A");
+			foodAA.put("food", new String[] { "青椒肉丝", "红烧鱼块" });
+
+			Map<String, Object> foodBB = Maps.newHashMapWithExpectedSize(3);
+			foodBB.put("isChoose", 1);
+			foodBB.put("name", "套餐B");
+			foodBB.put("food", new String[] { "白切鸡", "卤水鸡腿" });
+
+			lunchList.add(foodAA);
+			lunchList.add(foodBB);
+
+			Map<String, Object> foodAAA = Maps.newHashMapWithExpectedSize(3);
+			foodAAA.put("isChoose", 1);
+			foodAAA.put("name", "套餐A");
+			foodAAA.put("food", new String[] { "清炒小白菜", "酸辣土豆丝" });
+
+			Map<String, Object> foodBBB = Maps.newHashMapWithExpectedSize(3);
+			foodBBB.put("isChoose", 0);
+			foodBBB.put("name", "套餐B");
+			foodBBB.put("food", new String[] { "白灼菜心", "手撕包菜" });
+
+			dinnerList.add(foodAAA);
+			dinnerList.add(foodBBB);
+
 			JSONObject data1 = new JSONObject();
 			data1.put("id", "111");
 			data1.put("type", "早餐");
 			data1.put("sunday", "");
-			data1.put("monday", "豆浆");
+			data1.put("monday", breakfastList);
 			data1.put("tuesday", "油条");
 			data1.put("wednesday", "牛奶");
 			data1.put("thursday", "面窝");
@@ -55,7 +106,7 @@ public class MainController {
 			data2.put("id", "222");
 			data2.put("type", "午餐");
 			data2.put("sunday", "");
-			data2.put("monday", "青椒肉丝");
+			data2.put("monday", lunchList);
 			data2.put("tuesday", "白切鸡");
 			data2.put("wednesday", "卤水鸡腿");
 			data2.put("thursday", "红烧鱼块");
@@ -73,7 +124,7 @@ public class MainController {
 			data3.put("id", "333");
 			data3.put("type", "晚餐");
 			data3.put("sunday", "");
-			data3.put("monday", "清炒小白菜");
+			data3.put("monday", dinnerList);
 			data3.put("tuesday", "蒜蓉油麦菜");
 			data3.put("wednesday", "酸辣土豆丝");
 			data3.put("thursday", "白灼菜心");
