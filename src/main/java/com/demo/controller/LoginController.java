@@ -104,19 +104,7 @@ public class LoginController {
 
 					routingContext.setUser(user);
 
-					LocalDate[] weekDate = DateUtil.getBeginAndEndOfTheWeek(0);
-
 					JSONObject data = new JSONObject();
-
-					data.put("msg", "本周菜单");
-
-					data.put("monday", weekDate[0].toString("yyyy-MM-dd"));
-					data.put("tuesday", weekDate[1].toString("yyyy-MM-dd"));
-					data.put("wednesday", weekDate[2].toString("yyyy-MM-dd"));
-					data.put("thursday", weekDate[3].toString("yyyy-MM-dd"));
-					data.put("friday", weekDate[4].toString("yyyy-MM-dd"));
-					data.put("saturday", weekDate[5].toString("yyyy-MM-dd"));
-					data.put("sunday", weekDate[6].toString("yyyy-MM-dd"));
 
 					// routingContext.redirect("/freeMarker/list");
 

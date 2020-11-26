@@ -24,16 +24,18 @@ import com.demo.handler.TokenCheckHandler;
 import com.demo.util.ClazzUtils;
 import com.demo.vertx.VerticleUtils;
 
-import auth.MyJDBCAuth;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
-import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.*;
+import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.FaviconHandler;
+import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 
 /**
@@ -71,13 +73,13 @@ public class VerticleMain extends AbstractVerticle {
 
 		router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
-//		AuthenticationProvider myJDBCAuth = SpringBootContext.getApplicationContext()
-//				.getBean(MyJDBCAuth.class);
+		// AuthenticationProvider myJDBCAuth = SpringBootContext.getApplicationContext()
+		// .getBean(MyJDBCAuth.class);
 
 		// 当请求中没有session时，自动跳转到登录页
-//		RedirectAuthHandler authHandler = RedirectAuthHandler.create(myJDBCAuth,
-//				"/freeMarker/login");
-//		router.route().path("/user/*").handler(authHandler);
+		// RedirectAuthHandler authHandler = RedirectAuthHandler.create(myJDBCAuth,
+		// "/freeMarker/login");
+		// router.route().path("/user/*").handler(authHandler);
 
 		// vertx内置登录处理器
 		// FormLoginHandler formLoginHandler =
@@ -140,14 +142,15 @@ public class VerticleMain extends AbstractVerticle {
 		// 最后一个Route，请求URL没有匹配的Route, 则返回404
 		router.route().last().handler(context -> {
 			logger.error("请求URL【{}】未找到匹配的Route", context.request().path());
-			context.response().end("<h1>404</h1>");
+			// context.response().end("<h1>404</h1>");
+			context.reroute(HttpMethod.GET, "/recipes/404");
 		});
 
 		// Route处理过程中发生了错误，且请求匹配的Route没有通过方法failureHandler设置自己专属的错误处理器，则返回
 		router.route().failureHandler(handler -> {
 			logger.error("Route处理过程出现异常");
 			handler.response().putHeader("Content-Type", "text/html;charset=utf-8")
-					.end("<h1>系统异常，请联系管理员</h1>");
+					.end("系统异常，请联系管理员");
 			handler.failure().printStackTrace();
 		});
 

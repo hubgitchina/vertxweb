@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import io.vertx.core.Handler;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
@@ -31,7 +32,8 @@ public class SessionCheckHandler implements Handler<RoutingContext> {
 	public void handle(RoutingContext event) {
 
 		String requestUrl = event.request().path();
-		logger.info("进入 Session 拦截器, 请求路径：{}", requestUrl);
+		HttpMethod httpMethod = event.request().method();
+		logger.info("进入 Session 拦截器, 请求路径：{}，请求类型为：{}", requestUrl, httpMethod.name());
 		if ("/login".equals(requestUrl)) {
 			logger.info("登录请求，不做session验证");
 

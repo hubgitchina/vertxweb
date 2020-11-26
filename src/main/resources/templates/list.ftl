@@ -32,9 +32,11 @@
                 <div class="layui-card-body">
                     <blockquote class="layui-elem-quote layui-quote-nm">
                         订餐情况：
-                        <span class="layui-badge-rim">未选</span>
+                        <#--<span class="layui-badge-rim">未选</span>-->
+                        <span class="layui-badge layui-bg-cyan">未选</span>
                         &nbsp;
-                        <span class="layui-badge layui-bg-gray">已选</span>
+                        <#--<span class="layui-badge layui-bg-gray">已选</span>-->
+                        <span class="layui-badge layui-bg-blue">已选</span>
                     </blockquote>
 
                     <table class="layui-hide" id="data_table" lay-filter="data_table"></table>
