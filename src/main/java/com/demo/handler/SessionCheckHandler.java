@@ -39,7 +39,7 @@ public class SessionCheckHandler implements Handler<RoutingContext> {
 
 			// 继续下一个路由
 			event.next();
-		} else if ("/login2".equals(requestUrl)) {
+		} else if ("/login/in".equals(requestUrl)) {
 			logger.info("登录验证，不做session验证");
 
 			// 继续下一个路由

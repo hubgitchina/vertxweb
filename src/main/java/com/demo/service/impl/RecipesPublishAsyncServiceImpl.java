@@ -1,6 +1,5 @@
 package com.demo.service.impl;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.joda.time.DateTime;
@@ -23,6 +22,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.ResultSet;
+import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.UpdateResult;
 
 /**
@@ -127,16 +127,65 @@ public class RecipesPublishAsyncServiceImpl
 		params.add(now);
 		params.add(id);
 
-		jdbcClient.updateWithParams(sql, params, res -> {
-			if (res.succeeded()) {
-				UpdateResult updateResult = res.result();
-				int count = updateResult.getUpdated();
+		jdbcClient.getConnection(conRes -> {
+			if (conRes.succeeded()) {
+				SQLConnection connection = conRes.result();
+				/** 开启事务 */
+				connection.setAutoCommit(false, commitRes -> {
+					if (commitRes.succeeded()) {
+						// 事务开启成功 执行crud操作
+						connection.updateWithParams(sql, params, updateRes -> {
+							if (updateRes.succeeded()) {
+								// 提交事务
+								connection.commit(rx -> {
+									if (rx.succeeded()) {
+										// 事务提交成功
+										logger.info("事务提交成功");
 
-				Future.succeededFuture(count).onComplete(resultHandler);
+										UpdateResult updateResult = updateRes.result();
+										int count = updateResult.getUpdated();
+
+										Future.succeededFuture(count).onComplete(resultHandler);
+									}else{
+										logger.error("事务提交失败：{}", rx.cause().getMessage());
+										resultHandler.handle(Future.failedFuture(rx.cause()));
+									}
+								});
+							} else {
+								logger.error("更新失败：{}", updateRes.cause().getMessage());
+
+								connection.rollback(rb -> {
+									if (rb.succeeded()) {
+										// 事务回滚成功
+										logger.error("事务回滚成功");
+									}else{
+										logger.error("事务回滚失败：{}", rb.cause().getMessage());
+										resultHandler.handle(Future.failedFuture(rb.cause()));
+									}
+								});
+							}
+						});
+					} else {
+						logger.error("开启事务失败：{}", commitRes.cause().getMessage());
+						resultHandler.handle(Future.failedFuture(commitRes.cause()));
+					}
+				});
 			} else {
-				logger.error("更新失败：{}", res.cause().getMessage());
-				resultHandler.handle(Future.failedFuture(res.cause()));
+				logger.error("获取数据库连接失败：{}", conRes.cause().getMessage());
+				resultHandler.handle(Future.failedFuture(conRes.cause()));
 			}
 		});
+
+//		jdbcClient.updateWithParams(sql, params, res -> {
+//			if (res.succeeded()) {
+//				UpdateResult updateResult = res.result();
+//				int count = updateResult.getUpdated();
+//
+//				Future.succeededFuture(count).onComplete(resultHandler);
+//			} else {
+//				logger.error("更新失败：{}", res.cause().getMessage());
+//				resultHandler.handle(Future.failedFuture(res.cause()));
+//			}
+//		});
 	}
 }

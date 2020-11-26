@@ -86,6 +86,10 @@ public class VerticleMain extends AbstractVerticle {
 		// FormLoginHandler.create(myJDBCAuth).setDirectLoggedInOKURL("/index.html");
 		// router.route("/login").handler(formLoginHandler);
 
+		/** 将静态资源放到session验证前面，防止页面依赖css,js等文件被拦截 */
+		// CSS，IMAGE，JS等静态资源设置
+		router.route("/static/*").handler(StaticHandler.create("static"));
+
 		SessionCheckHandler sessionCheckHandler = SpringBootContext.getApplicationContext()
 				.getBean(SessionCheckHandler.class);
 
@@ -124,9 +128,6 @@ public class VerticleMain extends AbstractVerticle {
 		// favicon.ico图标设置
 		router.route("/favicon.ico").handler(FaviconHandler.create("static/images/favicon.ico"));
 
-		// CSS，IMAGE，JS等静态资源设置
-		router.route("/static/*").handler(StaticHandler.create("static"));
-
 		/** 映射服务器文件上传目录 */
 		String uploadFolder = environment.getProperty("file.uploadFolder");
 		router.route("/upload/file/*").handler(StaticHandler.create(uploadFolder));
@@ -150,7 +151,8 @@ public class VerticleMain extends AbstractVerticle {
 		router.route().failureHandler(handler -> {
 			logger.error("Route处理过程出现异常");
 			handler.response().putHeader("Content-Type", "text/html;charset=utf-8")
-					.end("系统异常，请联系管理员");
+//					.end("系统异常，请联系管理员");
+					.end(handler.failure().getMessage());
 			handler.failure().printStackTrace();
 		});
 

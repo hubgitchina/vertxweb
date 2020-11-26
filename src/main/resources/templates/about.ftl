@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>用户信息</title>
-    <link rel="stylesheet" href="/static/css/login.css">
+    <link rel="stylesheet" href="/static/css/login1.css">
 </head>
 <body>
 <div class="center">

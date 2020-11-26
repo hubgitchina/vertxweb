@@ -2,6 +2,8 @@ package com.demo.controller;
 
 import java.util.List;
 
+import com.demo.vertx.VertxRespone;
+import io.vertx.core.impl.NoStackTraceThrowable;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,12 +79,15 @@ public class LoginController {
 		};
 	}
 
-	@RequestMapping(value = "/login2", method = RequestMethod.POST)
+	@RequestMapping(value = "/login/in", method = RequestMethod.POST)
 	public Handler<RoutingContext> loginMethod() {
 
 		return routingContext -> {
-			String userName = routingContext.request().getParam("username");
-			String password = routingContext.request().getParam("password");
+//			String userName = routingContext.request().getParam("username");
+//			String password = routingContext.request().getParam("password");
+
+			String userName = routingContext.getBodyAsJson().getString("username");
+			String password = routingContext.getBodyAsJson().getString("password");
 
 			UsernamePasswordCredentials usernamePasswordCredentials = new UsernamePasswordCredentials(
 					userName, password);
@@ -108,17 +113,37 @@ public class LoginController {
 
 					// routingContext.redirect("/freeMarker/list");
 
-					templateEngine.render(data, "templates/index", res2 -> {
-						if (res2.succeeded()) {
-							routingContext.response().end(res2.result());
-						} else {
-							routingContext.fail(res2.cause());
-						}
-					});
+//					templateEngine.render(data, "templates/index", res2 -> {
+//						if (res2.succeeded()) {
+//							routingContext.response().end(res2.result());
+//						} else {
+//							routingContext.fail(res2.cause());
+//						}
+//					});
+
+					VertxRespone.build(routingContext).responeSuccess("index");
 				} else {
 					// 认证失败
 					logger.error("认证失败：{}", res.cause().getMessage());
 
+//					routingContext.fail(res.cause());
+					routingContext.fail(new NoStackTraceThrowable("用户名或密码不正确"));
+				}
+			});
+		};
+	}
+
+	@RequestMapping("/index")
+	public Handler<RoutingContext> index() {
+
+		return routingContext -> {
+
+			JsonObject data = new JsonObject();
+
+			templateEngine.render(data, "templates/index", res -> {
+				if (res.succeeded()) {
+					routingContext.response().end(res.result());
+				} else {
 					routingContext.fail(res.cause());
 				}
 			});
