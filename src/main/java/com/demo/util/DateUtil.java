@@ -33,6 +33,22 @@ public class DateUtil {
 
 	/**
 	 * @Author wangpeng
+	 * @Description 根据指定日期，获取下周的开始日期、结束日期
+	 * @Date 14:24
+	 * @Param
+	 * @return
+	 */
+	public static LocalDate[] getNextWeekByDate(DateTime dateTime) {
+
+		LocalDate date = new LocalDate(dateTime.plusWeeks(1));
+
+		date = date.dayOfWeek().withMinimumValue();
+		return new LocalDate[] { date, date.plusDays(1), date.plusDays(2), date.plusDays(3),
+				date.plusDays(4), date.plusDays(5), date.plusDays(6) };
+	}
+
+	/**
+	 * @Author wangpeng
 	 * @Description 计算特定日期是否在该区间内
 	 * @Date 11:32
 	 * @Param

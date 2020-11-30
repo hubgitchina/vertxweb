@@ -2,6 +2,7 @@ package com.demo.service.impl;
 
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,7 +147,7 @@ public class RecipesPublishAsyncServiceImpl
 										int count = updateResult.getUpdated();
 
 										Future.succeededFuture(count).onComplete(resultHandler);
-									}else{
+									} else {
 										logger.error("事务提交失败：{}", rx.cause().getMessage());
 										resultHandler.handle(Future.failedFuture(rx.cause()));
 									}
@@ -158,7 +159,7 @@ public class RecipesPublishAsyncServiceImpl
 									if (rb.succeeded()) {
 										// 事务回滚成功
 										logger.error("事务回滚成功");
-									}else{
+									} else {
 										logger.error("事务回滚失败：{}", rb.cause().getMessage());
 										resultHandler.handle(Future.failedFuture(rb.cause()));
 									}
@@ -176,16 +177,42 @@ public class RecipesPublishAsyncServiceImpl
 			}
 		});
 
-//		jdbcClient.updateWithParams(sql, params, res -> {
-//			if (res.succeeded()) {
-//				UpdateResult updateResult = res.result();
-//				int count = updateResult.getUpdated();
-//
-//				Future.succeededFuture(count).onComplete(resultHandler);
-//			} else {
-//				logger.error("更新失败：{}", res.cause().getMessage());
-//				resultHandler.handle(Future.failedFuture(res.cause()));
-//			}
-//		});
+		// jdbcClient.updateWithParams(sql, params, res -> {
+		// if (res.succeeded()) {
+		// UpdateResult updateResult = res.result();
+		// int count = updateResult.getUpdated();
+		//
+		// Future.succeededFuture(count).onComplete(resultHandler);
+		// } else {
+		// logger.error("更新失败：{}", res.cause().getMessage());
+		// resultHandler.handle(Future.failedFuture(res.cause()));
+		// }
+		// });
+	}
+
+	@Override
+	public void getRecipesPublishNew(Handler<AsyncResult<JSONObject>> resultHandler) {
+
+		String sql = "select max(end_date) as endDate from recipes_publish where is_del = 0";
+
+		// 执行查询
+		jdbcClient.queryWithParams(sql, new JsonArray(), res -> {
+			if (res.succeeded()) {
+				ResultSet resultSet = res.result();
+				List<JsonObject> rows = resultSet.getRows();
+
+				if(CollectionUtils.isNotEmpty(rows)){
+					JSONObject fastObject = rows.get(0).mapTo(JSONObject.class);
+
+					Future.succeededFuture(fastObject).onComplete(resultHandler);
+				}else{
+					Future.succeededFuture(new JSONObject()).onComplete(resultHandler);
+				}
+			} else {
+				logger.error("查询失败：{}", res.cause().getMessage());
+				resultHandler.handle(Future.failedFuture(res.cause()));
+			}
+		});
+
 	}
 }

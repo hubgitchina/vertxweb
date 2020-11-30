@@ -171,7 +171,6 @@
 
                     break;
             }
-            ;
         });
 
         //监听表格行操作栏工具按钮事件
@@ -189,8 +188,23 @@
         });
 
         function doAdd() {
-            parent.layer.msg("开发中，请等待");
-            return;
+            // parent.layer.msg("开发中，请等待");
+
+            layer.open({
+                type: 2,
+                area: ['80%', '95%'],
+                // offset: '65px',
+                title: '新增-菜谱',
+                content: '/recipes/addRecipes',
+                // btn: ['关闭'],
+                // btnAlign: 'c',
+                // yes: function (index, layero) {
+                //     layer.close(index);
+                // }
+                success: function (layero, index) {
+
+                }
+            });
         }
 
         function publishRecipes(id) {

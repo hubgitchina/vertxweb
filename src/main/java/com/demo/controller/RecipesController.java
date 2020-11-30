@@ -1,5 +1,6 @@
 package com.demo.controller;
 
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,6 +115,88 @@ public class RecipesController {
 					vertxRequest.buildVertxRespone().responeSuccess(count);
 				} else {
 					vertxRequest.buildVertxRespone().responseFail(result.cause().getMessage());
+				}
+			});
+		};
+	}
+
+	@RequestMapping("/addRecipes")
+	public Handler<RoutingContext> addRecipes() {
+
+		return routingContext -> {
+
+			recipesPublishAsyncService.getRecipesPublishNew(res -> {
+				DateTime dateTime;
+				if (res.succeeded()) {
+					JSONObject jsonObject = res.result();
+					if (jsonObject.isEmpty()) {
+						dateTime = new DateTime();
+					} else {
+						dateTime = new DateTime(jsonObject.getString("endDate"));
+					}
+
+					LocalDate[] weekDate = DateUtil.getNextWeekByDate(dateTime);
+
+					JsonObject data = new JsonObject();
+					data.put("monday", weekDate[0].toString("yyyy-MM-dd"));
+					data.put("tuesday", weekDate[1].toString("yyyy-MM-dd"));
+					data.put("wednesday", weekDate[2].toString("yyyy-MM-dd"));
+					data.put("thursday", weekDate[3].toString("yyyy-MM-dd"));
+					data.put("friday", weekDate[4].toString("yyyy-MM-dd"));
+					data.put("saturday", weekDate[5].toString("yyyy-MM-dd"));
+					data.put("sunday", weekDate[6].toString("yyyy-MM-dd"));
+
+					templateEngine.render(data, "templates/add_recipes", res2 -> {
+						if (res2.succeeded()) {
+							routingContext.response().end(res2.result());
+						} else {
+							routingContext.fail(res2.cause());
+						}
+					});
+				} else {
+					routingContext.fail(res.cause());
+				}
+			});
+		};
+	}
+
+	@RequestMapping("/addRecipesFood")
+	public Handler<RoutingContext> addRecipesFood() {
+
+		return routingContext -> {
+
+			String cellIndex = routingContext.request().getParam("cellIndex");
+			String rowIndex = routingContext.request().getParam("rowIndex");
+
+			JsonObject data = new JsonObject();
+			data.put("cellIndex", cellIndex);
+			data.put("rowIndex", rowIndex);
+
+			templateEngine.render(data, "templates/add_recipes_food", res -> {
+				if (res.succeeded()) {
+					routingContext.response().end(res.result());
+				} else {
+					routingContext.fail(res.cause());
+				}
+			});
+		};
+	}
+
+	@RequestMapping("/addFood")
+	public Handler<RoutingContext> addFood() {
+
+		return routingContext -> {
+
+			String id = routingContext.request().getParam("id");
+
+			JsonObject data = new JsonObject();
+			data.put("oldId", id);
+
+			templateEngine.render(data, "templates/add_food", res -> {
+				if (res.succeeded()) {
+					routingContext.response().end(res.result());
+				} else {
+					routingContext.fail(res.cause());
 				}
 			});
 		};

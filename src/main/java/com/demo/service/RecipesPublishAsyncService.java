@@ -26,4 +26,6 @@ public interface RecipesPublishAsyncService {
 			Handler<AsyncResult<PageResponeWrapper>> resultHandler);
 
 	void publishRecipes(String id, Handler<AsyncResult<Integer>> resultHandler);
+
+	void getRecipesPublishNew(Handler<AsyncResult<JSONObject>> resultHandler);
 }
