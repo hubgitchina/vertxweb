@@ -58,7 +58,7 @@
             </div>
 
             <div class="layui-form-item text-right ">
-                <button class="layui-btn" lay-filter="formSubmit" lay-submit>保存</button>
+                <button class="layui-btn" lay-filter="addRecipes" lay-submit>保存</button>
                 <button class="layui-btn layui-btn-primary" type="button" ew-event="cancelBtn" id="cancelBtn">
                     取消
                 </button>
@@ -158,134 +158,127 @@
                 , {
                     field: 'monday', title: '${monday}<br/>星期一', align: 'center'
                     , templet: function (d) {
-                        var foodHtml = '';
+                        var foodHtml = '<button class="layui-btn layui-btn-sm" type="button" onclick="addRecipesFood()">新增</button>';
                         if (d.monday && d.monday.length > 0) {
-                            foodHtml = '<button class="layui-btn layui-btn-normal" type="button" onclick="editRecipesFood()">编辑</button>';
                             for (var i = 0; i < d.monday.length; i++) {
                                 var tempFood = d.monday[i];
-                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2">' + tempFood.setMealName;
+                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2;border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)<button type="button" style="margin-left: 5px;" onclick="editRecipesFood()" class="layui-btn layui-btn-xs layui-btn-normal">编辑</button></div>';
+                                foodHtml += '<div style="background-color: #d2d2d2;">';
                                 for (var j = 0; j < tempFood.food.length; j++) {
-                                    foodHtml += '<br/>' + tempFood.food[j].dishName;
+                                    foodHtml += tempFood.food[j].dishName + '<br/>';
                                 }
                                 foodHtml += '</div>';
                             }
-                            return foodHtml;
                         }
-                        return '<button class="layui-btn" type="button" onclick="addRecipesFood()">新增</button>';
+                        return foodHtml;
                     }
                 }
                 , {
                     field: 'tuesday', title: '${tuesday}<br/>星期二', align: 'center'
                     , templet: function (d) {
-                        var foodHtml = '';
+                        var foodHtml = '<button class="layui-btn layui-btn-sm" type="button" onclick="addRecipesFood()">新增</button>';
                         if (d.tuesday && d.tuesday.length > 0) {
-                            foodHtml = '<button class="layui-btn layui-btn-normal" type="button" onclick="editRecipesFood()">编辑</button>';
                             for (var i = 0; i < d.tuesday.length; i++) {
                                 var tempFood = d.tuesday[i];
-                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2">' + tempFood.setMealName;
+                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2;border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)<button type="button" style="margin-left: 5px;" onclick="editRecipesFood()" class="layui-btn layui-btn-xs layui-btn-normal">编辑</button></div>';
+                                foodHtml += '<div style="background-color: #d2d2d2;">';
                                 for (var j = 0; j < tempFood.food.length; j++) {
-                                    foodHtml += '<br/>' + tempFood.food[j].dishName;
+                                    foodHtml += tempFood.food[j].dishName + '<br/>';
                                 }
                                 foodHtml += '</div>';
                             }
-                            return foodHtml;
                         }
-                        return '<button class="layui-btn" type="button" onclick="addRecipesFood()">新增</button>';
+                        return foodHtml;
                     }
                 }
                 , {
                     field: 'wednesday', title: '${wednesday}<br/>星期三', align: 'center'
                     , templet: function (d) {
-                        var foodHtml = '';
+                        var foodHtml = '<button class="layui-btn layui-btn-sm" type="button" onclick="addRecipesFood()">新增</button>';
                         if (d.wednesday && d.wednesday.length > 0) {
-                            foodHtml = '<button class="layui-btn layui-btn-normal" type="button" onclick="editRecipesFood()">编辑</button>';
                             for (var i = 0; i < d.wednesday.length; i++) {
                                 var tempFood = d.wednesday[i];
-                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2">' + tempFood.setMealName;
+                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2;border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)<button type="button" style="margin-left: 5px;" onclick="editRecipesFood()" class="layui-btn layui-btn-xs layui-btn-normal">编辑</button></div>';
+                                foodHtml += '<div style="background-color: #d2d2d2;">';
                                 for (var j = 0; j < tempFood.food.length; j++) {
-                                    foodHtml += '<br/>' + tempFood.food[j].dishName;
+                                    foodHtml += tempFood.food[j].dishName + '<br/>';
                                 }
                                 foodHtml += '</div>';
                             }
-                            return foodHtml;
                         }
-                        return '<button class="layui-btn" type="button" onclick="addRecipesFood()">新增</button>';
+                        return foodHtml;
                     }
                 }
                 , {
                     field: 'thursday', title: '${thursday}<br/>星期四', align: 'center'
                     , templet: function (d) {
-                        var foodHtml = '';
+                        var foodHtml = '<button class="layui-btn layui-btn-sm" type="button" onclick="addRecipesFood()">新增</button>';
                         if (d.thursday && d.thursday.length > 0) {
-                            foodHtml = '<button class="layui-btn layui-btn-normal" type="button" onclick="editRecipesFood()">编辑</button>';
                             for (var i = 0; i < d.thursday.length; i++) {
                                 var tempFood = d.thursday[i];
-                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2">' + tempFood.setMealName;
+                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2;border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)<button type="button" style="margin-left: 5px;" onclick="editRecipesFood()" class="layui-btn layui-btn-xs layui-btn-normal">编辑</button></div>';
+                                foodHtml += '<div style="background-color: #d2d2d2;">';
                                 for (var j = 0; j < tempFood.food.length; j++) {
-                                    foodHtml += '<br/>' + tempFood.food[j].dishName;
+                                    foodHtml += tempFood.food[j].dishName + '<br/>';
                                 }
                                 foodHtml += '</div>';
                             }
-                            return foodHtml;
                         }
-                        return '<button class="layui-btn" type="button" onclick="addRecipesFood()">新增</button>';
+                        return foodHtml;
                     }
                 }
                 , {
                     field: 'friday', title: '${friday}<br/>星期五', align: 'center'
                     , templet: function (d) {
-                        var foodHtml = '';
+                        var foodHtml = '<button class="layui-btn layui-btn-sm" type="button" onclick="addRecipesFood()">新增</button>';
                         if (d.friday && d.friday.length > 0) {
-                            foodHtml = '<button class="layui-btn layui-btn-normal" type="button" onclick="editRecipesFood()">编辑</button>';
                             for (var i = 0; i < d.friday.length; i++) {
                                 var tempFood = d.friday[i];
-                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2">' + tempFood.setMealName;
+                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2;border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)<button type="button" style="margin-left: 5px;" onclick="editRecipesFood()" class="layui-btn layui-btn-xs layui-btn-normal">编辑</button></div>';
+                                foodHtml += '<div style="background-color: #d2d2d2;">';
                                 for (var j = 0; j < tempFood.food.length; j++) {
-                                    foodHtml += '<br/>' + tempFood.food[j].dishName;
+                                    foodHtml += tempFood.food[j].dishName + '<br/>';
                                 }
                                 foodHtml += '</div>';
                             }
-                            return foodHtml;
                         }
-                        return '<button class="layui-btn" type="button" onclick="addRecipesFood()">新增</button>';
+                        return foodHtml;
                     }
                 }
                 , {
                     field: 'saturday', title: '${saturday}<br/>星期六', align: 'center'
                     , templet: function (d) {
-                        var foodHtml = '';
+                        var foodHtml = '<button class="layui-btn layui-btn-sm" type="button" onclick="addRecipesFood()">新增</button>';
                         if (d.saturday && d.saturday.length > 0) {
-                            foodHtml = '<button class="layui-btn layui-btn-normal" type="button" onclick="editRecipesFood()">编辑</button>';
                             for (var i = 0; i < d.saturday.length; i++) {
                                 var tempFood = d.saturday[i];
-                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2">' + tempFood.setMealName;
+                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2;border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)<button type="button" style="margin-left: 5px;" onclick="editRecipesFood()" class="layui-btn layui-btn-xs layui-btn-normal">编辑</button></div>';
+                                foodHtml += '<div style="background-color: #d2d2d2;">';
                                 for (var j = 0; j < tempFood.food.length; j++) {
-                                    foodHtml += '<br/>' + tempFood.food[j].dishName;
+                                    foodHtml += tempFood.food[j].dishName + '<br/>';
                                 }
                                 foodHtml += '</div>';
                             }
-                            return foodHtml;
                         }
-                        return '<button class="layui-btn" type="button" onclick="addRecipesFood()">新增</button>';
+                        return foodHtml;
                     }
                 }
                 , {
                     field: 'sunday', title: '${sunday}<br/>星期天', align: 'center'
                     , templet: function (d) {
-                        var foodHtml = '';
+                        var foodHtml = '<button class="layui-btn layui-btn-sm" type="button" onclick="addRecipesFood()">新增</button>';
                         if (d.sunday && d.sunday.length > 0) {
-                            foodHtml = '<button class="layui-btn layui-btn-normal" type="button" onclick="editRecipesFood()">编辑</button>';
                             for (var i = 0; i < d.sunday.length; i++) {
                                 var tempFood = d.sunday[i];
-                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2">' + tempFood.setMealName;
+                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2;border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)<button type="button" style="margin-left: 5px;" onclick="editRecipesFood()" class="layui-btn layui-btn-xs layui-btn-normal">编辑</button></div>';
+                                foodHtml += '<div style="background-color: #d2d2d2;">';
                                 for (var j = 0; j < tempFood.food.length; j++) {
-                                    foodHtml += '<br/>' + tempFood.food[j].dishName;
+                                    foodHtml += tempFood.food[j].dishName + '<br/>';
                                 }
                                 foodHtml += '</div>';
                             }
-                            return foodHtml;
                         }
-                        return '<button class="layui-btn" type="button" onclick="addRecipesFood()">新增</button>';
+                        return foodHtml;
                     }
                 }
             ]]
@@ -338,6 +331,58 @@
                 }
             });
         }
+
+        // 表单提交事件
+        form.on('submit(addRecipes)', function (d) {
+            if (tableData.length == 0) {
+                layer.msg("请添加菜谱");
+                return false;
+            }
+
+            // 组装数据
+            var param = {
+                startDate: d.field.startDate
+                , endDate: d.field.endDate
+                , recipesList: tableData
+            };
+
+            var msgIndex = layer.msg('系统处理中，请等待...', {shade: [0.8, '#393D49'], icon: 16, time: false});
+
+            $.ajax({
+                type: 'POST',
+                url: '/recipes/saveRecipes',
+                contentType: "application/json; charset=utf-8",
+                async: true,
+                data: JSON.stringify(param),
+                dataType: "json",
+                success: function (res) {
+                    layer.close(msgIndex);
+
+                    if (res.code == 200) {
+                        parent.layui.table.reload('data_table');
+                        var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                        parent.layer.close(index); //再执行关闭
+                        parent.layer.msg("新增成功！", {icon: 1});
+                    } else {
+                        layer.alert("新增失败，" + res.msg, {
+                            icon: 5,
+                            btnAlign: 'c', //按钮居中
+                            title: "提示"
+                        });
+                    }
+                },
+                error: function (msg) {
+                    layer.close(msgIndex);
+
+                    layer.alert("新增失败: " + msg.responseText, {
+                        icon: 5,
+                        btnAlign: 'c', //按钮居中
+                        title: "提示"
+                    });
+                }
+            });
+            return false;
+        });
 
         $(document).on('click', '#cancelBtn', function () {
             var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引

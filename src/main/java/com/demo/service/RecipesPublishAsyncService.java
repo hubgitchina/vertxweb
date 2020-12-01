@@ -1,5 +1,7 @@
 package com.demo.service;
 
+import java.util.Map;
+
 import com.alibaba.fastjson.JSONObject;
 import com.demo.model.response.PageResponeWrapper;
 
@@ -28,4 +30,6 @@ public interface RecipesPublishAsyncService {
 	void publishRecipes(String id, Handler<AsyncResult<Integer>> resultHandler);
 
 	void getRecipesPublishNew(Handler<AsyncResult<JSONObject>> resultHandler);
+
+	void saveRecipesPublish(Map<String, Object> map, Handler<AsyncResult<String>> resultHandler);
 }

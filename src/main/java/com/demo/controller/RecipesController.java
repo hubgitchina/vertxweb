@@ -1,5 +1,10 @@
 package com.demo.controller;
 
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
@@ -7,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.demo.annotation.RequestBody;
 import com.demo.annotation.RequestMapping;
@@ -15,8 +21,12 @@ import com.demo.enums.RequestMethod;
 import com.demo.model.response.PageResponeWrapper;
 import com.demo.service.RecipesPublishAsyncService;
 import com.demo.util.DateUtil;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
+import cn.hutool.core.util.IdUtil;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.StaticHandler;
@@ -200,6 +210,189 @@ public class RecipesController {
 				}
 			});
 		};
+	}
+
+	@RequestBody
+	@RequestMapping(value = "/saveRecipes", method = RequestMethod.POST)
+	public ControllerHandler saveRecipes() {
+
+		return vertxRequest -> {
+			JSONObject param = vertxRequest.getBodyJsonToBean(JSONObject.class);
+			LocalDate startDate = new LocalDate(param.getString("startDate"));
+			LocalDate endDate = new LocalDate(param.getString("endDate"));
+			JSONArray recipesList = param.getJSONArray("recipesList");
+			logger.info("参数 {}", param);
+
+			String recipesId = IdUtil.simpleUUID();
+
+			String userId = vertxRequest.getRoutingContext().user().principal().getString("userId");
+
+			List<JsonArray> batchSetMealList = Lists.newArrayList();
+			List<JsonArray> batchFoodList = Lists.newArrayList();
+			for (int i = 0; i < recipesList.size(); i++) {
+				JSONObject tempJson = recipesList.getJSONObject(i);
+				JSONArray tempMondy = tempJson.getJSONArray("monday");
+				JSONArray tempTuesday = tempJson.getJSONArray("tuesday");
+				JSONArray tempWednesday = tempJson.getJSONArray("wednesday");
+				JSONArray tempThursday = tempJson.getJSONArray("thursday");
+				JSONArray tempFriday = tempJson.getJSONArray("friday");
+				JSONArray tempSaturday = tempJson.getJSONArray("saturday");
+				JSONArray tempSunday = tempJson.getJSONArray("sunday");
+
+				if (CollectionUtils.isNotEmpty(tempMondy)) {
+					Map<String, Object> map = this.setMealDetail(tempMondy, recipesId, i + 1,
+							userId, startDate, "1");
+					this.setBatchList(map, batchSetMealList, batchFoodList);
+				}
+
+				if (CollectionUtils.isNotEmpty(tempTuesday)) {
+					Map<String, Object> map = this.setMealDetail(tempTuesday, recipesId, i + 1,
+							userId, startDate.plusDays(1), "2");
+					this.setBatchList(map, batchSetMealList, batchFoodList);
+				}
+
+				if (CollectionUtils.isNotEmpty(tempWednesday)) {
+					Map<String, Object> map = this.setMealDetail(tempWednesday, recipesId, i + 1,
+							userId, startDate.plusDays(2), "3");
+					this.setBatchList(map, batchSetMealList, batchFoodList);
+				}
+
+				if (CollectionUtils.isNotEmpty(tempThursday)) {
+					Map<String, Object> map = this.setMealDetail(tempThursday, recipesId, i + 1,
+							userId, startDate.plusDays(3), "4");
+					this.setBatchList(map, batchSetMealList, batchFoodList);
+				}
+
+				if (CollectionUtils.isNotEmpty(tempFriday)) {
+					Map<String, Object> map = this.setMealDetail(tempFriday, recipesId, i + 1,
+							userId, startDate.plusDays(4), "5");
+					this.setBatchList(map, batchSetMealList, batchFoodList);
+				}
+
+				if (CollectionUtils.isNotEmpty(tempSaturday)) {
+					Map<String, Object> map = this.setMealDetail(tempSaturday, recipesId, i + 1,
+							userId, startDate.plusDays(5), "6");
+					this.setBatchList(map, batchSetMealList, batchFoodList);
+				}
+
+				if (CollectionUtils.isNotEmpty(tempSunday)) {
+					Map<String, Object> map = this.setMealDetail(tempSunday, recipesId, i + 1,
+							userId, startDate.plusDays(6), "7");
+					this.setBatchList(map, batchSetMealList, batchFoodList);
+				}
+			}
+
+			JsonArray recipesJson = new JsonArray();
+			this.setCommonInfo(recipesJson, userId, recipesId);
+			recipesJson.add(startDate.toString("yyyy-MM-dd"));
+			recipesJson.add(endDate.toString("yyyy-MM-dd"));
+			recipesJson.add(0);
+
+			Map<String, Object> insertMap = Maps.newHashMapWithExpectedSize(3);
+			insertMap.put("recipes", recipesJson);
+			insertMap.put("batchSetMealList", batchSetMealList);
+			insertMap.put("batchFoodList", batchFoodList);
+
+			recipesPublishAsyncService.saveRecipesPublish(insertMap, result -> {
+				if (result.succeeded()) {
+					String res = result.result();
+
+					vertxRequest.buildVertxRespone().responeSuccess(res);
+				} else {
+					vertxRequest.buildVertxRespone().responseFail(result.cause().getMessage());
+				}
+			});
+		};
+	}
+
+	private void setBatchList(Map<String, Object> map, List<JsonArray> batchSetMealList,
+			List<JsonArray> batchFoodList) {
+
+		List<JsonArray> setMealList = (List<JsonArray>) map.get("setMealList");
+		List<JsonArray> foodList = (List<JsonArray>) map.get("foodList");
+
+		batchSetMealList.addAll(setMealList);
+		batchFoodList.addAll(foodList);
+	}
+
+	private String setCommonInfo(JsonArray jsonArray, String userId, String id) {
+
+		if (StringUtils.isBlank(id)) {
+			id = IdUtil.simpleUUID();
+		}
+
+		String now = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
+
+		jsonArray.add(id);
+		jsonArray.add(now);
+		jsonArray.add(userId);
+		jsonArray.add(now);
+		jsonArray.add(userId);
+		jsonArray.add(0);
+
+		return id;
+	}
+
+	private Map<String, Object> setMealDetail(JSONArray jsonArray, String recipesId, int type,
+			String userId, LocalDate date, String week) {
+
+		Map<String, Object> map = Maps.newHashMapWithExpectedSize(2);
+
+		int size = jsonArray.size();
+		List<JsonArray> setMealList = Lists.newArrayListWithCapacity(size);
+		for (int i = 0; i < size; i++) {
+			JSONObject tempJson = jsonArray.getJSONObject(i);
+
+			JsonArray setMealJson = new JsonArray();
+			String setMealId = this.setCommonInfo(setMealJson, userId, null);
+
+			setMealJson.add(recipesId);
+			setMealJson.add(type);
+			setMealJson.add(tempJson.getIntValue("isSetMeal"));
+			setMealJson.add(tempJson.getString("setMealName"));
+			setMealJson.add(date.toString("yyyy-MM-dd"));
+			setMealJson.add(week);
+			setMealJson.add(tempJson.getBigDecimal("price"));
+
+			setMealList.add(setMealJson);
+
+			JSONArray food = tempJson.getJSONArray("food");
+
+			if (CollectionUtils.isNotEmpty(food)) {
+				List<JsonArray> foodList = this.setFoodDetail(food, recipesId, setMealId, type,
+						userId, date, week);
+
+				map.put("foodList", foodList);
+			}
+		}
+		map.put("setMealList", setMealList);
+
+		return map;
+	}
+
+	private List<JsonArray> setFoodDetail(JSONArray jsonArray, String recipesId, String setMealId,
+			int type, String userId, LocalDate date, String week) {
+
+		int size = jsonArray.size();
+		List<JsonArray> foodList = Lists.newArrayListWithCapacity(size);
+		for (int i = 0; i < size; i++) {
+			JSONObject tempJson = jsonArray.getJSONObject(i);
+
+			JsonArray foodJson = new JsonArray();
+			String foodId = this.setCommonInfo(foodJson, userId, null);
+
+			foodJson.add(recipesId);
+			foodJson.add(setMealId);
+			foodJson.add(type);
+			foodJson.add(tempJson.getIntValue("category"));
+			foodJson.add(tempJson.getString("dishName"));
+			foodJson.add(date.toString("yyyy-MM-dd"));
+			foodJson.add(week);
+
+			foodList.add(foodJson);
+		}
+
+		return foodList;
 	}
 
 	@RequestMapping("/test")

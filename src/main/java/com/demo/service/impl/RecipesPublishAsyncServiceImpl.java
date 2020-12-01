@@ -1,6 +1,7 @@
 package com.demo.service.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.joda.time.DateTime;
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.demo.model.response.PageResponeWrapper;
 import com.demo.service.BaseAsyncService;
@@ -201,11 +203,11 @@ public class RecipesPublishAsyncServiceImpl
 				ResultSet resultSet = res.result();
 				List<JsonObject> rows = resultSet.getRows();
 
-				if(CollectionUtils.isNotEmpty(rows)){
+				if (CollectionUtils.isNotEmpty(rows)) {
 					JSONObject fastObject = rows.get(0).mapTo(JSONObject.class);
 
 					Future.succeededFuture(fastObject).onComplete(resultHandler);
-				}else{
+				} else {
 					Future.succeededFuture(new JSONObject()).onComplete(resultHandler);
 				}
 			} else {
@@ -213,6 +215,63 @@ public class RecipesPublishAsyncServiceImpl
 				resultHandler.handle(Future.failedFuture(res.cause()));
 			}
 		});
+	}
 
+	@Override
+	public void saveRecipesPublish(Map<String, Object> map,
+			Handler<AsyncResult<String>> resultHandler) {
+
+		JsonArray recipes = (JsonArray) map.get("recipes");
+		List<JsonArray> batchSetMealList = (List<JsonArray>) map.get("batchSetMealList");
+		List<JsonArray> batchFoodList = (List<JsonArray>) map.get("batchFoodList");
+
+		String recipesSql = "insert into recipes_publish (id,create_date,create_by,update_date,update_by,is_del,start_date,end_date,status) values (?,?,?,?,?,?,?,?,?)";
+		String setMealSql = "insert into recipes_set_meal (id,create_date,create_by,update_date,update_by,is_del,recipes_publish_id,type,is_set_meal,set_meal_name,date,week,price) values (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		String foodSql = "insert into recipes_publish_set_meal_food (id,create_date,create_by,update_date,update_by,is_del,recipes_publish_id,recipes_set_meal_id,type,category,dish_name,date,week) values (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+		jdbcClient.updateWithParams(recipesSql, recipes, res -> {
+			if (res.succeeded()) {
+				UpdateResult result = res.result();
+				int count = result.getUpdated();
+
+				logger.info("菜谱发布记录插入成功【{}】条", count);
+
+				jdbcClient.getConnection(conRes -> {
+					if (conRes.succeeded()) {
+						SQLConnection connection = conRes.result();
+						connection.batchWithParams(setMealSql, batchSetMealList, batchRes -> {
+							if (batchRes.succeeded()) {
+								List<Integer> batchResult = batchRes.result();
+								logger.info("批量插入菜谱套餐记录结果【{}】", JSON.toJSONString(batchResult));
+
+								connection.batchWithParams(foodSql, batchFoodList, batchFoodRes -> {
+									if (batchFoodRes.succeeded()) {
+										List<Integer> batchFoodResult = batchFoodRes.result();
+										logger.info("批量插入菜谱套餐菜品记录结果【{}】",
+												JSON.toJSONString(batchFoodResult));
+
+										Future.succeededFuture("success").onComplete(resultHandler);
+									} else {
+										logger.error("批量插入菜谱套餐菜品记录失败：{}",
+												batchFoodRes.cause().getMessage());
+										resultHandler
+												.handle(Future.failedFuture(batchFoodRes.cause()));
+									}
+								});
+							} else {
+								logger.error("批量插入菜谱套餐记录失败：{}", batchRes.cause().getMessage());
+								resultHandler.handle(Future.failedFuture(batchRes.cause()));
+							}
+						});
+					} else {
+						logger.error("获取数据库连接失败：{}", conRes.cause().getMessage());
+						resultHandler.handle(Future.failedFuture(conRes.cause()));
+					}
+				});
+			} else {
+				logger.error("查询失败：{}", res.cause().getMessage());
+				resultHandler.handle(Future.failedFuture(res.cause()));
+			}
+		});
 	}
 }
