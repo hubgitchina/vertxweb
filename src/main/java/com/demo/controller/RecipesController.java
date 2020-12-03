@@ -212,6 +212,37 @@ public class RecipesController {
 		};
 	}
 
+	@RequestMapping("/lookRecipes")
+	public Handler<RoutingContext> lookRecipes() {
+
+		return routingContext -> {
+
+			String id = routingContext.request().getParam("id");
+			String startDate = routingContext.request().getParam("startDate");
+			String endDate = routingContext.request().getParam("endDate");
+
+			LocalDate[] weekDate = DateUtil.getNextWeekByDate(new DateTime(startDate));
+
+			JsonObject data = new JsonObject();
+			data.put("recipesId", id);
+			data.put("monday", weekDate[0].toString("yyyy-MM-dd"));
+			data.put("tuesday", weekDate[1].toString("yyyy-MM-dd"));
+			data.put("wednesday", weekDate[2].toString("yyyy-MM-dd"));
+			data.put("thursday", weekDate[3].toString("yyyy-MM-dd"));
+			data.put("friday", weekDate[4].toString("yyyy-MM-dd"));
+			data.put("saturday", weekDate[5].toString("yyyy-MM-dd"));
+			data.put("sunday", weekDate[6].toString("yyyy-MM-dd"));
+
+			templateEngine.render(data, "templates/look_recipes", res -> {
+				if (res.succeeded()) {
+					routingContext.response().end(res.result());
+				} else {
+					routingContext.fail(res.cause());
+				}
+			});
+		};
+	}
+
 	@RequestBody
 	@RequestMapping(value = "/saveRecipes", method = RequestMethod.POST)
 	public ControllerHandler saveRecipes() {
@@ -393,6 +424,31 @@ public class RecipesController {
 		}
 
 		return foodList;
+	}
+
+	@RequestBody
+	@RequestMapping(value = "/getRecipesById", method = RequestMethod.POST)
+	public ControllerHandler getRecipesById() {
+
+		return vertxRequest -> {
+
+			int page = vertxRequest.getParamToInt("page").get();
+			int limit = vertxRequest.getParamToInt("limit").get();
+
+			String recipesId = vertxRequest.getParam("recipesId").get();
+
+			logger.info("pageNo为 {} ，pageSize为 {}", page, limit);
+
+			recipesPublishAsyncService.queryRecipesDetailPage(recipesId, result -> {
+				if (result.succeeded()) {
+					PageResponeWrapper pageRespone = result.result();
+
+					vertxRequest.buildVertxRespone().responePageSuccess(pageRespone);
+				} else {
+					vertxRequest.buildVertxRespone().responseFail(result.cause().getMessage());
+				}
+			});
+		};
 	}
 
 	@RequestMapping("/test")

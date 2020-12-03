@@ -177,7 +177,7 @@
         table.on('tool(data_table)', function (obj) {
             var f = obj.data;
             if (obj.event === 'look') {
-                lookRecipes(f.id);
+                lookRecipes(f.id, f.start_date, f.end_date);
             } else if (obj.event === 'edit') {
                 editRecipes(f.id);
             } else if (obj.event === 'del') {
@@ -207,8 +207,26 @@
             });
         }
 
+        function lookRecipes(id, startDate, endDate) {
+            layer.open({
+                type: 2,
+                area: ['80%', '95%'],
+                // offset: '65px',
+                title: '查看-菜谱',
+                content: '/recipes/lookRecipes?id=' + id + '&startDate=' + startDate + '&endDate=' + endDate,
+                // btn: ['关闭'],
+                // btnAlign: 'c',
+                // yes: function (index, layero) {
+                //     layer.close(index);
+                // }
+                success: function (layero, index) {
+
+                }
+            });
+        }
+
         function publishRecipes(id) {
-            layer.confirm("发布之后，菜谱将不能再做修改或删除操作，<br />确定进行发布操作吗？", {btnAlign: 'c', title:'提示'}, function (index) {
+            layer.confirm("发布之后，菜谱将不能再做修改或删除操作，<br />确定进行发布操作吗？", {btnAlign: 'c', title: '提示'}, function (index) {
 
                 var param = {
                     id: id

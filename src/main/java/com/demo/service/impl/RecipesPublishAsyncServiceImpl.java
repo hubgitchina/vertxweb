@@ -1,5 +1,6 @@
 package com.demo.service.impl;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -114,7 +115,6 @@ public class RecipesPublishAsyncServiceImpl
 				resultHandler.handle(Future.failedFuture(countRes.cause()));
 			}
 		});
-
 	}
 
 	@Override
@@ -268,6 +268,307 @@ public class RecipesPublishAsyncServiceImpl
 						resultHandler.handle(Future.failedFuture(conRes.cause()));
 					}
 				});
+			} else {
+				logger.error("查询失败：{}", res.cause().getMessage());
+				resultHandler.handle(Future.failedFuture(res.cause()));
+			}
+		});
+	}
+
+	@Override
+	public void queryRecipesDetailPage(String recipesId,
+			Handler<AsyncResult<PageResponeWrapper>> resultHandler) {
+
+		String sql = "select m.id as setMealId, m.set_meal_name, m.price, m.is_set_meal, m.type, m.date, m.week,f.id as foodId, f.category, f.dish_name"
+				+ " from recipes_set_meal m left join recipes_publish_set_meal_food f on f.recipes_set_meal_id = m.id "
+				+ "where m.recipes_publish_id = ?  and m.is_del = 0 and f.is_del = 0 order by m.week, m.type";
+
+		JsonArray params = new JsonArray();
+		params.add(recipesId);
+
+		// 执行查询
+		jdbcClient.queryWithParams(sql, params, res -> {
+			if (res.succeeded()) {
+				ResultSet resultSet = res.result();
+				List<JsonObject> rows = resultSet.getRows();
+
+				JSONObject breakfastJson = new JSONObject();
+				JSONObject lunchJson = new JSONObject();
+				JSONObject dinnerJson = new JSONObject();
+
+				breakfastJson.put("type", "早餐");
+				lunchJson.put("type", "午餐");
+				dinnerJson.put("type", "晚餐");
+
+				List<JSONObject> monday1 = Lists.newArrayList();
+				List<JSONObject> monday2 = Lists.newArrayList();
+				List<JSONObject> monday3 = Lists.newArrayList();
+
+				List<JSONObject> tuesday1 = Lists.newArrayList();
+				List<JSONObject> tuesday2 = Lists.newArrayList();
+				List<JSONObject> tuesday3 = Lists.newArrayList();
+
+				List<JSONObject> wednesday1 = Lists.newArrayList();
+				List<JSONObject> wednesday2 = Lists.newArrayList();
+				List<JSONObject> wednesday3 = Lists.newArrayList();
+
+				List<JSONObject> thursday1 = Lists.newArrayList();
+				List<JSONObject> thursday2 = Lists.newArrayList();
+				List<JSONObject> thursday3 = Lists.newArrayList();
+
+				List<JSONObject> friday1 = Lists.newArrayList();
+				List<JSONObject> friday2 = Lists.newArrayList();
+				List<JSONObject> friday3 = Lists.newArrayList();
+
+				List<JSONObject> saturday1 = Lists.newArrayList();
+				List<JSONObject> saturday2 = Lists.newArrayList();
+				List<JSONObject> saturday3 = Lists.newArrayList();
+
+				List<JSONObject> sunday1 = Lists.newArrayList();
+				List<JSONObject> sunday2 = Lists.newArrayList();
+				List<JSONObject> sunday3 = Lists.newArrayList();
+
+				String setMealId = "";
+				String setMealName = "";
+				String week = "";
+				int type = 0;
+				BigDecimal price = BigDecimal.ZERO;
+
+				JSONObject setMealJson;
+				List<JSONObject> foodList = null;
+				int size = rows.size();
+				for (int i = 0; i < size; i++) {
+					JsonObject jsonObject = rows.get(i);
+					JSONObject tempJson = jsonObject.mapTo(JSONObject.class);
+					String tempWeek = tempJson.getString("week");
+					int tempType = tempJson.getIntValue("type");
+					BigDecimal tempPrice = tempJson.getBigDecimal("price");
+
+					String foodId = tempJson.getString("foodId");
+					String dishName = tempJson.getString("dish_name");
+					String category = tempJson.getString("category");
+
+					JSONObject foodJson = new JSONObject();
+					foodJson.put("foodId", foodId);
+					foodJson.put("dishName", dishName);
+					foodJson.put("category", category);
+
+					String tempSetMealName = tempJson.getString("set_meal_name");
+					String tempSetMealId = tempJson.getString("setMealId");
+					if (i == 0) {
+						setMealId = tempSetMealId;
+						setMealName = tempSetMealName;
+						week = tempWeek;
+						type = tempType;
+						price = tempPrice;
+
+						foodList = Lists.newArrayList();
+						foodList.add(foodJson);
+
+						if (i == (size - 1)) {
+							setMealJson = new JSONObject();
+							setMealJson.put("id", setMealId);
+							setMealJson.put("setMealName", setMealName);
+							setMealJson.put("price", price);
+							setMealJson.put("food", foodList);
+
+							addSetMealFood(week, type, setMealJson, monday1, monday2, monday3,
+									tuesday1, tuesday2, tuesday3, wednesday1, wednesday2,
+									wednesday3, thursday1, thursday2, thursday3, friday1, friday2,
+									friday3, saturday1, saturday2, saturday3, sunday1, sunday2,
+									sunday3);
+
+							break;
+						}
+					} else {
+						if (setMealId.equals(tempSetMealId)) {
+							foodList.add(foodJson);
+						} else {
+							setMealJson = new JSONObject();
+							setMealJson.put("id", setMealId);
+							setMealJson.put("setMealName", setMealName);
+							setMealJson.put("price", price);
+
+							if (CollectionUtils.isNotEmpty(foodList)) {
+								List<JSONObject> tempFoodList = Lists
+										.newArrayListWithCapacity(foodList.size());
+								tempFoodList.addAll(foodList);
+
+								setMealJson.put("food", tempFoodList);
+
+								foodList.clear();
+							}
+
+							addSetMealFood(week, type, setMealJson, monday1, monday2, monday3,
+									tuesday1, tuesday2, tuesday3, wednesday1, wednesday2,
+									wednesday3, thursday1, thursday2, thursday3, friday1, friday2,
+									friday3, saturday1, saturday2, saturday3, sunday1, sunday2,
+									sunday3);
+
+							setMealId = tempSetMealId;
+							setMealName = tempSetMealName;
+							week = tempWeek;
+							type = tempType;
+							price = tempPrice;
+
+							foodList.add(foodJson);
+						}
+
+						if (i == (size - 1)) {
+							setMealJson = new JSONObject();
+							setMealJson.put("id", setMealId);
+							setMealJson.put("setMealName", setMealName);
+							setMealJson.put("price", price);
+							setMealJson.put("food", foodList);
+
+							addSetMealFood(week, type, setMealJson, monday1, monday2, monday3,
+									tuesday1, tuesday2, tuesday3, wednesday1, wednesday2,
+									wednesday3, thursday1, thursday2, thursday3, friday1, friday2,
+									friday3, saturday1, saturday2, saturday3, sunday1, sunday2,
+									sunday3);
+						}
+					}
+				}
+
+				setRecipesDetail(breakfastJson, monday1, tuesday1, wednesday1, thursday1, friday1,
+						saturday1, sunday1);
+				setRecipesDetail(lunchJson, monday2, tuesday2, wednesday2, thursday2, friday2,
+						saturday2, sunday2);
+				setRecipesDetail(dinnerJson, monday3, tuesday3, wednesday3, thursday3, friday3,
+						saturday3, sunday3);
+
+				List<JSONObject> result = Lists.newArrayListWithCapacity(3);
+				result.add(breakfastJson);
+				result.add(lunchJson);
+				result.add(dinnerJson);
+
+				PageResponeWrapper pageRespone = new PageResponeWrapper(result, 1, 10,
+						result.size());
+
+				Future.succeededFuture(pageRespone).onComplete(resultHandler);
+			} else {
+				logger.error("查询菜谱套餐数据失败：{}", res.cause().getMessage());
+				resultHandler.handle(Future.failedFuture(res.cause()));
+			}
+		});
+	}
+
+	private void setRecipesDetail(JSONObject recipesJson, List<JSONObject> monday,
+			List<JSONObject> tuesday, List<JSONObject> wednesday, List<JSONObject> thursday,
+			List<JSONObject> friday, List<JSONObject> saturday, List<JSONObject> sunday) {
+
+		recipesJson.put("monday", monday);
+		recipesJson.put("tuesday", tuesday);
+		recipesJson.put("wednesday", wednesday);
+		recipesJson.put("thursday", thursday);
+		recipesJson.put("friday", friday);
+		recipesJson.put("saturday", saturday);
+		recipesJson.put("sunday", sunday);
+	}
+
+	private void addSetMealFood(String week, int type, JSONObject setMealJson,
+			List<JSONObject> monday1, List<JSONObject> monday2, List<JSONObject> monday3,
+			List<JSONObject> tuesday1, List<JSONObject> tuesday2, List<JSONObject> tuesday3,
+			List<JSONObject> wednesday1, List<JSONObject> wednesday2, List<JSONObject> wednesday3,
+			List<JSONObject> thursday1, List<JSONObject> thursday2, List<JSONObject> thursday3,
+			List<JSONObject> friday1, List<JSONObject> friday2, List<JSONObject> friday3,
+			List<JSONObject> saturday1, List<JSONObject> saturday2, List<JSONObject> saturday3,
+			List<JSONObject> sunday1, List<JSONObject> sunday2, List<JSONObject> sunday3) {
+
+		switch (week) {
+		case "1":
+			if (1 == type) {
+				monday1.add(setMealJson);
+			} else if (2 == type) {
+				monday2.add(setMealJson);
+			} else if (3 == type) {
+				monday3.add(setMealJson);
+			}
+			break;
+		case "2":
+			if (1 == type) {
+				tuesday1.add(setMealJson);
+			} else if (2 == type) {
+				tuesday2.add(setMealJson);
+			} else if (3 == type) {
+				tuesday3.add(setMealJson);
+			}
+			break;
+		case "3":
+			if (1 == type) {
+				wednesday1.add(setMealJson);
+			} else if (2 == type) {
+				wednesday2.add(setMealJson);
+			} else if (3 == type) {
+				wednesday3.add(setMealJson);
+			}
+			break;
+		case "4":
+			if (1 == type) {
+				thursday1.add(setMealJson);
+			} else if (2 == type) {
+				thursday2.add(setMealJson);
+			} else if (3 == type) {
+				thursday3.add(setMealJson);
+			}
+			break;
+		case "5":
+			if (1 == type) {
+				friday1.add(setMealJson);
+			} else if (2 == type) {
+				friday2.add(setMealJson);
+			} else if (3 == type) {
+				friday3.add(setMealJson);
+			}
+			break;
+		case "6":
+			if (1 == type) {
+				saturday1.add(setMealJson);
+			} else if (2 == type) {
+				saturday2.add(setMealJson);
+			} else if (3 == type) {
+				saturday3.add(setMealJson);
+			}
+			break;
+		case "7":
+			if (1 == type) {
+				sunday1.add(setMealJson);
+			} else if (2 == type) {
+				sunday2.add(setMealJson);
+			} else if (3 == type) {
+				sunday3.add(setMealJson);
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
+	private void querySetMealFood(String recipesId, String setMealId,
+			Handler<AsyncResult<List<JSONObject>>> resultHandler) {
+
+		String sql = "select * from recipes_publish_set_meal_food where is_del = 0 and recipes_publish_id = ? and recipes_set_meal_id = ? order by create_date";
+
+		// 构造参数
+		JsonArray params = new JsonArray();
+		params.add(recipesId);
+		params.add(setMealId);
+
+		// 执行查询
+		jdbcClient.queryWithParams(sql, params, res -> {
+			if (res.succeeded()) {
+				ResultSet resultSet = res.result();
+				List<JsonObject> rows = resultSet.getRows();
+
+				List<JSONObject> list = Lists.newArrayListWithCapacity(rows.size());
+
+				for (JsonObject jsonObject : rows) {
+					JSONObject fastObject = jsonObject.mapTo(JSONObject.class);
+
+					list.add(fastObject);
+				}
+
+				Future.succeededFuture(list).onComplete(resultHandler);
 			} else {
 				logger.error("查询失败：{}", res.cause().getMessage());
 				resultHandler.handle(Future.failedFuture(res.cause()));

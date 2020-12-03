@@ -32,4 +32,7 @@ public interface RecipesPublishAsyncService {
 	void getRecipesPublishNew(Handler<AsyncResult<JSONObject>> resultHandler);
 
 	void saveRecipesPublish(Map<String, Object> map, Handler<AsyncResult<String>> resultHandler);
+
+	void queryRecipesDetailPage(String recipesId,
+			Handler<AsyncResult<PageResponeWrapper>> resultHandler);
 }
