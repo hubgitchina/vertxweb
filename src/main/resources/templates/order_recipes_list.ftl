@@ -2,23 +2,13 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>菜谱发布页面</title>
+    <title>订餐记录页面</title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <link rel="stylesheet" href="/static/layui/css/layui.css" media="all">
     <link rel="stylesheet" href="/static/css/admin.css" media="all">
 </head>
-
-<style type="text/css">
-    {
-        # 设置table每一行的height #
-    }
-    .layui-table-cell {
-        height: auto;
-        line-height: 28px;
-    }
-</style>
 
 <body>
 
@@ -46,21 +36,18 @@
     <#--</div>-->
 </div>
 
-<script id="recipesToolbar" type="text/html">
-    <button class="layui-btn" type="button" lay-event="toAdd">新增</button>
-</script>
-
 <#-- 操作 -->
 <script id="recipesBar" type="text/html">
     <button class="layui-btn layui-btn-xs layui-btn-primary" lay-event="look">查看</button>
 
-    {{# if(d.status == 0){ }}
-    <button class="layui-btn layui-btn-xs" lay-event="edit">编辑</button>
-    <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del">删除</button>
-    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="publish">发布</button>
+    {{# if(d.contained == 0 || d.contained == 1){ }}
+    <button class="layui-btn layui-btn-xs" lay-event="order">订餐</button>
     {{# } else { }}
     <#--<button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del">删除</button>-->
     {{# } }}
+
+    <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="reply">留言</button>
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="track">溯源</button>
 </script>
 
 <script src="/static/layui/layui.js"></script>
@@ -76,12 +63,12 @@
         table.render({
             limit: 10,
             elem: '#data_table',
-            url: "/recipes/queryRecipesPublishPage",
+            url: "/order/queryOrderRecipesPage",
             // where: {
             //     voucherId: voucherId
             // },
             title: '数据列表',
-            toolbar: '#recipesToolbar',
+            // toolbar: '#recipesToolbar',
             defaultToolbar: [],
             method: 'post',
             // height: '489',
@@ -113,12 +100,12 @@
                     }
                 }
                 , {
-                    field: 'status', title: '发布状态', align: 'center'
+                    field: 'status', title: '订餐状态', align: 'center'
                     , templet: function (d) {
-                        if (d.status == 0) {
-                            return '<del style="color: #FF5722;"><span class="layui-btn layui-btn-xs layui-btn-radius layui-btn-danger">未发布</span></del>';
-                        } else if (d.status == 1) {
-                            return '<span class="layui-btn layui-btn-xs layui-btn-radius layui-btn-normal">已发布</span>';
+                        if (d.isOrder == 0) {
+                            return '<del style="color: #FF5722;"><span class="layui-btn layui-btn-xs layui-btn-radius layui-btn-danger">未订餐</span></del>';
+                        } else if (d.isOrder == 1) {
+                            return '<span class="layui-btn layui-btn-xs layui-btn-radius layui-btn-normal">已订餐</span>';
                         } else {
                             return '';
                         }
@@ -153,59 +140,19 @@
             }
         });
 
-        //监听表头工具栏按钮事件
-        table.on('toolbar(data_table)', function (obj) {
-            // var checkRow = table.checkStatus(obj.config.id).data;
-            // if (!checkRow.length) {
-            //     layer.msg("请先选择数据");
-            //     return;
-            // }
-            switch (obj.event) {
-                case 'toAdd':
-                    doAdd();
-                    break;
-                case 'toDelete':
-
-                    break;
-                case 'toChange':
-
-                    break;
-            }
-        });
-
         //监听表格行操作栏工具按钮事件
         table.on('tool(data_table)', function (obj) {
             var f = obj.data;
             if (obj.event === 'look') {
                 lookRecipes(f.id, f.start_date, f.end_date);
-            } else if (obj.event === 'edit') {
-                editRecipes(f.id);
-            } else if (obj.event === 'del') {
-                deleteRecipes(f.id);
-            } else if (obj.event === 'publish') {
-                publishRecipes(f.id);
+            } else if (obj.event === 'order') {
+                orderRecipes(f.id, f.start_date, f.end_date);
+            } else if (obj.event === 'reply') {
+                replyRecipes(f.id);
+            } else if (obj.event === 'track') {
+                trackRecipes(f.id);
             }
         });
-
-        function doAdd() {
-            // parent.layer.msg("开发中，请等待");
-
-            layer.open({
-                type: 2,
-                area: ['80%', '95%'],
-                // offset: '65px',
-                title: '新增-菜谱',
-                content: '/recipes/addRecipes',
-                // btn: ['关闭'],
-                // btnAlign: 'c',
-                // yes: function (index, layero) {
-                //     layer.close(index);
-                // }
-                success: function (layero, index) {
-
-                }
-            });
-        }
 
         function lookRecipes(id, startDate, endDate) {
             layer.open({
@@ -225,9 +172,18 @@
             });
         }
 
+        function orderRecipes(id, startDate, endDate) {
+            layer.open({
+                type: 2,
+                area: ['80%', '95%'],
+                // offset: '65px',
+                title: '预订-菜谱',
+                content: '/order/orderRecipes?id=' + id + '&startDate=' + startDate + '&endDate=' + endDate
+            });
+        }
+
         function publishRecipes(id) {
-            layer.confirm("<span style='color: #FF00FF'>发布之后，菜谱将不能再做修改或删除操作</span>" +
-                "<br />确定进行发布操作吗？", {btnAlign: 'c', title: '提示'}, function (index) {
+            layer.confirm("发布之后，菜谱将不能再做修改或删除操作，<br />确定进行发布操作吗？", {btnAlign: 'c', title: '提示'}, function (index) {
 
                 var param = {
                     id: id

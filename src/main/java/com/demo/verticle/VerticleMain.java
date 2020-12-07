@@ -86,6 +86,9 @@ public class VerticleMain extends AbstractVerticle {
 		// FormLoginHandler.create(myJDBCAuth).setDirectLoggedInOKURL("/index.html");
 		// router.route("/login").handler(formLoginHandler);
 
+		/** favicon.ico图标设置 */
+		router.route("/favicon.ico").handler(FaviconHandler.create("static/images/favicon.ico"));
+
 		/** 将静态资源放到session验证前面，防止页面依赖css,js等文件被拦截 */
 		// CSS，IMAGE，JS等静态资源设置
 		router.route("/static/*").handler(StaticHandler.create("static"));
@@ -125,9 +128,6 @@ public class VerticleMain extends AbstractVerticle {
 						.setUploadsDirectory(System.getProperty("java.io.tmpdir"))
 						.setDeleteUploadedFilesOnEnd(true));
 
-		// favicon.ico图标设置
-		router.route("/favicon.ico").handler(FaviconHandler.create("static/images/favicon.ico"));
-
 		/** 映射服务器文件上传目录 */
 		String uploadFolder = environment.getProperty("file.uploadFolder");
 		router.route("/upload/file/*").handler(StaticHandler.create(uploadFolder));
@@ -144,7 +144,7 @@ public class VerticleMain extends AbstractVerticle {
 		router.route().last().handler(context -> {
 			logger.error("请求URL【{}】未找到匹配的Route", context.request().path());
 			// context.response().end("<h1>404</h1>");
-			context.reroute(HttpMethod.GET, "/recipes/404");
+			context.reroute(HttpMethod.GET, "/system/404");
 		});
 
 		// Route处理过程中发生了错误，且请求匹配的Route没有通过方法failureHandler设置自己专属的错误处理器，则返回

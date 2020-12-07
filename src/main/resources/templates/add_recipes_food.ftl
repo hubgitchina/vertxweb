@@ -168,6 +168,11 @@
         }
 
         form.on('submit(addRecipesFood)', function (d) {
+            if (tableData.length == 0) {
+                layer.msg("请添加菜品");
+                return false;
+            }
+
             // 组装数据
             var record = {
                 id: uuid()
@@ -178,13 +183,13 @@
             };
 
             var oldId = d.field.oldId;
-            if(oldId){
+            if (oldId) {
                 parent.deleteTableData(oldId);
             }
 
-            for(var i=0; i<parent.tableData.length; i++){
+            for (var i = 0; i < parent.tableData.length; i++) {
                 var tempData = parent.tableData[i];
-                if(tempData.setMealName == record.setMealName){
+                if (tempData.setMealName == record.setMealName) {
                     parent.layer.alert("套餐已存在", {
                         icon: 5,
                         btnAlign: 'c', //按钮居中
@@ -199,65 +204,65 @@
             var rowIndex = d.field.rowIndex;
             switch (cellIndex - 1) {
                 case 1:
-                    if(rowIndex == 0){
+                    if (rowIndex == 0) {
                         parent.tableData[0].monday.push(record);
-                    }else if(rowIndex == 1){
+                    } else if (rowIndex == 1) {
                         parent.tableData[1].monday.push(record);
-                    }else if(rowIndex == 2){
+                    } else if (rowIndex == 2) {
                         parent.tableData[2].monday.push(record);
                     }
                     break;
                 case 2:
-                    if(rowIndex == 0){
+                    if (rowIndex == 0) {
                         parent.tableData[0].tuesday.push(record);
-                    }else if(rowIndex == 1){
+                    } else if (rowIndex == 1) {
                         parent.tableData[1].tuesday.push(record);
-                    }else if(rowIndex == 2){
+                    } else if (rowIndex == 2) {
                         parent.tableData[2].tuesday.push(record);
                     }
                     break;
                 case 3:
-                    if(rowIndex == 0){
+                    if (rowIndex == 0) {
                         parent.tableData[0].wednesday.push(record);
-                    }else if(rowIndex == 1){
+                    } else if (rowIndex == 1) {
                         parent.tableData[1].wednesday.push(record);
-                    }else if(rowIndex == 2){
+                    } else if (rowIndex == 2) {
                         parent.tableData[2].wednesday.push(record);
                     }
                     break;
                 case 4:
-                    if(rowIndex == 0){
+                    if (rowIndex == 0) {
                         parent.tableData[0].thursday.push(record);
-                    }else if(rowIndex == 1){
+                    } else if (rowIndex == 1) {
                         parent.tableData[1].thursday.push(record);
-                    }else if(rowIndex == 2){
+                    } else if (rowIndex == 2) {
                         parent.tableData[2].thursday.push(record);
                     }
                     break;
                 case 5:
-                    if(rowIndex == 0){
+                    if (rowIndex == 0) {
                         parent.tableData[0].friday.push(record);
-                    }else if(rowIndex == 1){
+                    } else if (rowIndex == 1) {
                         parent.tableData[1].friday.push(record);
-                    }else if(rowIndex == 2){
+                    } else if (rowIndex == 2) {
                         parent.tableData[2].friday.push(record);
                     }
                     break;
                 case 6:
-                    if(rowIndex == 0){
+                    if (rowIndex == 0) {
                         parent.tableData[0].saturday.push(record);
-                    }else if(rowIndex == 1){
+                    } else if (rowIndex == 1) {
                         parent.tableData[1].saturday.push(record);
-                    }else if(rowIndex == 2){
+                    } else if (rowIndex == 2) {
                         parent.tableData[2].saturday.push(record);
                     }
                     break;
                 case 7:
-                    if(rowIndex == 0){
+                    if (rowIndex == 0) {
                         parent.tableData[0].sunday.push(record);
-                    }else if(rowIndex == 1){
+                    } else if (rowIndex == 1) {
                         parent.tableData[1].sunday.push(record);
-                    }else if(rowIndex == 2){
+                    } else if (rowIndex == 2) {
                         parent.tableData[2].sunday.push(record);
                     }
             }

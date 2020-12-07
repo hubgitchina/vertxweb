@@ -227,7 +227,7 @@ public class RecipesPublishAsyncServiceImpl
 
 		String recipesSql = "insert into recipes_publish (id,create_date,create_by,update_date,update_by,is_del,start_date,end_date,status) values (?,?,?,?,?,?,?,?,?)";
 		String setMealSql = "insert into recipes_set_meal (id,create_date,create_by,update_date,update_by,is_del,recipes_publish_id,type,is_set_meal,set_meal_name,date,week,price) values (?,?,?,?,?,?,?,?,?,?,?,?,?)";
-		String foodSql = "insert into recipes_publish_set_meal_food (id,create_date,create_by,update_date,update_by,is_del,recipes_publish_id,recipes_set_meal_id,type,category,dish_name,date,week) values (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		String foodSql = "insert into recipes_publish_set_meal_food (id,create_date,create_by,update_date,update_by,is_del,recipes_publish_id,recipes_set_meal_id,type,category,dish_name,date,week,sort) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
 		jdbcClient.updateWithParams(recipesSql, recipes, res -> {
 			if (res.succeeded()) {
@@ -269,19 +269,19 @@ public class RecipesPublishAsyncServiceImpl
 					}
 				});
 			} else {
-				logger.error("查询失败：{}", res.cause().getMessage());
+				logger.error("菜谱发布记录插入失败：{}", res.cause().getMessage());
 				resultHandler.handle(Future.failedFuture(res.cause()));
 			}
 		});
 	}
 
 	@Override
-	public void queryRecipesDetailPage(String recipesId,
-			Handler<AsyncResult<PageResponeWrapper>> resultHandler) {
+	public void getRecipesDetail(String recipesId,
+			Handler<AsyncResult<List<JSONObject>>> resultHandler) {
 
-		String sql = "select m.id as setMealId, m.set_meal_name, m.price, m.is_set_meal, m.type, m.date, m.week,f.id as foodId, f.category, f.dish_name"
+		String sql = "select m.id as setMealId, m.set_meal_name, m.price, m.is_set_meal, m.type, m.date, m.week,f.id as foodId, f.category, f.dish_name, f.sort"
 				+ " from recipes_set_meal m left join recipes_publish_set_meal_food f on f.recipes_set_meal_id = m.id "
-				+ "where m.recipes_publish_id = ?  and m.is_del = 0 and f.is_del = 0 order by m.week, m.type";
+				+ "where m.recipes_publish_id = ?  and m.is_del = 0 and f.is_del = 0 order by m.week, m.type, m.id, f.sort";
 
 		JsonArray params = new JsonArray();
 		params.add(recipesId);
@@ -364,22 +364,6 @@ public class RecipesPublishAsyncServiceImpl
 
 						foodList = Lists.newArrayList();
 						foodList.add(foodJson);
-
-						if (i == (size - 1)) {
-							setMealJson = new JSONObject();
-							setMealJson.put("id", setMealId);
-							setMealJson.put("setMealName", setMealName);
-							setMealJson.put("price", price);
-							setMealJson.put("food", foodList);
-
-							addSetMealFood(week, type, setMealJson, monday1, monday2, monday3,
-									tuesday1, tuesday2, tuesday3, wednesday1, wednesday2,
-									wednesday3, thursday1, thursday2, thursday3, friday1, friday2,
-									friday3, saturday1, saturday2, saturday3, sunday1, sunday2,
-									sunday3);
-
-							break;
-						}
 					} else {
 						if (setMealId.equals(tempSetMealId)) {
 							foodList.add(foodJson);
@@ -388,6 +372,7 @@ public class RecipesPublishAsyncServiceImpl
 							setMealJson.put("id", setMealId);
 							setMealJson.put("setMealName", setMealName);
 							setMealJson.put("price", price);
+							setMealJson.put("type", type);
 
 							if (CollectionUtils.isNotEmpty(foodList)) {
 								List<JSONObject> tempFoodList = Lists
@@ -413,20 +398,21 @@ public class RecipesPublishAsyncServiceImpl
 
 							foodList.add(foodJson);
 						}
+					}
 
-						if (i == (size - 1)) {
-							setMealJson = new JSONObject();
-							setMealJson.put("id", setMealId);
-							setMealJson.put("setMealName", setMealName);
-							setMealJson.put("price", price);
-							setMealJson.put("food", foodList);
+					if (i == (size - 1)) {
+						setMealJson = new JSONObject();
+						setMealJson.put("id", setMealId);
+						setMealJson.put("setMealName", setMealName);
+						setMealJson.put("price", price);
+						setMealJson.put("type", type);
+						setMealJson.put("food", foodList);
 
-							addSetMealFood(week, type, setMealJson, monday1, monday2, monday3,
-									tuesday1, tuesday2, tuesday3, wednesday1, wednesday2,
-									wednesday3, thursday1, thursday2, thursday3, friday1, friday2,
-									friday3, saturday1, saturday2, saturday3, sunday1, sunday2,
-									sunday3);
-						}
+						addSetMealFood(week, type, setMealJson, monday1, monday2, monday3,
+								tuesday1, tuesday2, tuesday3, wednesday1, wednesday2,
+								wednesday3, thursday1, thursday2, thursday3, friday1, friday2,
+								friday3, saturday1, saturday2, saturday3, sunday1, sunday2,
+								sunday3);
 					}
 				}
 
@@ -437,15 +423,12 @@ public class RecipesPublishAsyncServiceImpl
 				setRecipesDetail(dinnerJson, monday3, tuesday3, wednesday3, thursday3, friday3,
 						saturday3, sunday3);
 
-				List<JSONObject> result = Lists.newArrayListWithCapacity(3);
-				result.add(breakfastJson);
-				result.add(lunchJson);
-				result.add(dinnerJson);
+				List<JSONObject> recipesList = Lists.newArrayListWithCapacity(3);
+				recipesList.add(breakfastJson);
+				recipesList.add(lunchJson);
+				recipesList.add(dinnerJson);
 
-				PageResponeWrapper pageRespone = new PageResponeWrapper(result, 1, 10,
-						result.size());
-
-				Future.succeededFuture(pageRespone).onComplete(resultHandler);
+				Future.succeededFuture(recipesList).onComplete(resultHandler);
 			} else {
 				logger.error("查询菜谱套餐数据失败：{}", res.cause().getMessage());
 				resultHandler.handle(Future.failedFuture(res.cause()));

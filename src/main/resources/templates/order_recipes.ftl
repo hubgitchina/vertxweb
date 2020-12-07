@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>查看-菜谱</title>
+    <title>订餐页面</title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -58,8 +58,9 @@
             </div>
 
             <div class="layui-form-item text-right ">
-                <button class="layui-btn layui-btn-normal" type="button" ew-event="cancelBtn" id="cancelBtn">
-                    关闭
+                <button class="layui-btn" lay-filter="orderRecipes" lay-submit>保存</button>
+                <button class="layui-btn layui-btn-primary" type="button" ew-event="cancelBtn" id="cancelBtn">
+                    取消
                 </button>
             </div>
         </form>
@@ -68,6 +69,30 @@
 
 <script src="/static/layui/layui.js"></script>
 <script src="/static/js/form-verify.js" charset="utf-8"></script>
+
+<style>
+    .order-div {
+        margin-top: 5px;
+        background-color: #d2d2d2;
+        color: #666;
+        cursor: pointer;
+    }
+
+    .order-div:hover {
+        background-color: #5FB878;
+    }
+
+    .order-div-choose {
+        margin-top: 5px;
+        background-color: #1E9FFF;
+        color: #fff;
+        cursor: pointer;
+    }
+
+    .order-div-choose:hover {
+        background-color: #5FB878;
+    }
+</style>
 
 <script charset="utf-8">
 
@@ -79,13 +104,15 @@
         var util = layui.util;
         var laydate = layui.laydate;
 
+        var recipesId = '${recipesId!}';
+
         table.render({
             limit: 10,
             elem: '#data_table',
             url: "/recipes/getRecipesById",
             // data: tableData,
             where: {
-                recipesId: '${recipesId!}'
+                recipesId: recipesId
             },
             title: '数据列表',
             method: 'post',
@@ -104,11 +131,16 @@
                         if (d.monday && d.monday.length > 0) {
                             for (var i = 0; i < d.monday.length; i++) {
                                 var tempFood = d.monday[i];
-                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2;border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
-                                foodHtml += '<div style="background-color: #d2d2d2;">';
+                                foodHtml += '<div class="order-div">';
+                                foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
+                                foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
+                                foodHtml += '<input type="hidden" id="type" value="' + tempFood.type + '">';
+                                foodHtml += '<div style="border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
+                                foodHtml += '<div>';
                                 for (var j = 0; j < tempFood.food.length; j++) {
                                     foodHtml += tempFood.food[j].dishName + '<br/>';
                                 }
+                                foodHtml += '</div>';
                                 foodHtml += '</div>';
                             }
                         }
@@ -122,11 +154,16 @@
                         if (d.tuesday && d.tuesday.length > 0) {
                             for (var i = 0; i < d.tuesday.length; i++) {
                                 var tempFood = d.tuesday[i];
-                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2;border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
-                                foodHtml += '<div style="background-color: #d2d2d2;">';
+                                foodHtml += '<div class="order-div">';
+                                foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
+                                foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
+                                foodHtml += '<input type="hidden" id="type" value="' + tempFood.type + '">';
+                                foodHtml += '<div style="border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
+                                foodHtml += '<div>';
                                 for (var j = 0; j < tempFood.food.length; j++) {
                                     foodHtml += tempFood.food[j].dishName + '<br/>';
                                 }
+                                foodHtml += '</div>';
                                 foodHtml += '</div>';
                             }
                         }
@@ -140,11 +177,16 @@
                         if (d.wednesday && d.wednesday.length > 0) {
                             for (var i = 0; i < d.wednesday.length; i++) {
                                 var tempFood = d.wednesday[i];
-                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2;border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
-                                foodHtml += '<div style="background-color: #d2d2d2;">';
+                                foodHtml += '<div class="order-div">';
+                                foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
+                                foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
+                                foodHtml += '<input type="hidden" id="type" value="' + tempFood.type + '">';
+                                foodHtml += '<div style="border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
+                                foodHtml += '<div>';
                                 for (var j = 0; j < tempFood.food.length; j++) {
                                     foodHtml += tempFood.food[j].dishName + '<br/>';
                                 }
+                                foodHtml += '</div>';
                                 foodHtml += '</div>';
                             }
                         }
@@ -158,11 +200,16 @@
                         if (d.thursday && d.thursday.length > 0) {
                             for (var i = 0; i < d.thursday.length; i++) {
                                 var tempFood = d.thursday[i];
-                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2;border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
-                                foodHtml += '<div style="background-color: #d2d2d2;">';
+                                foodHtml += '<div class="order-div">';
+                                foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
+                                foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
+                                foodHtml += '<input type="hidden" id="type" value="' + tempFood.type + '">';
+                                foodHtml += '<div style="border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
+                                foodHtml += '<div>';
                                 for (var j = 0; j < tempFood.food.length; j++) {
                                     foodHtml += tempFood.food[j].dishName + '<br/>';
                                 }
+                                foodHtml += '</div>';
                                 foodHtml += '</div>';
                             }
                         }
@@ -176,11 +223,16 @@
                         if (d.friday && d.friday.length > 0) {
                             for (var i = 0; i < d.friday.length; i++) {
                                 var tempFood = d.friday[i];
-                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2;border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
-                                foodHtml += '<div style="background-color: #d2d2d2;">';
+                                foodHtml += '<div class="order-div">';
+                                foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
+                                foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
+                                foodHtml += '<input type="hidden" id="type" value="' + tempFood.type + '">';
+                                foodHtml += '<div style="border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
+                                foodHtml += '<div>';
                                 for (var j = 0; j < tempFood.food.length; j++) {
                                     foodHtml += tempFood.food[j].dishName + '<br/>';
                                 }
+                                foodHtml += '</div>';
                                 foodHtml += '</div>';
                             }
                         }
@@ -194,11 +246,16 @@
                         if (d.saturday && d.saturday.length > 0) {
                             for (var i = 0; i < d.saturday.length; i++) {
                                 var tempFood = d.saturday[i];
-                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2;border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
-                                foodHtml += '<div style="background-color: #d2d2d2;">';
+                                foodHtml += '<div class="order-div">';
+                                foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
+                                foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
+                                foodHtml += '<input type="hidden" id="type" value="' + tempFood.type + '">';
+                                foodHtml += '<div style="border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
+                                foodHtml += '<div>';
                                 for (var j = 0; j < tempFood.food.length; j++) {
                                     foodHtml += tempFood.food[j].dishName + '<br/>';
                                 }
+                                foodHtml += '</div>';
                                 foodHtml += '</div>';
                             }
                         }
@@ -212,11 +269,16 @@
                         if (d.sunday && d.sunday.length > 0) {
                             for (var i = 0; i < d.sunday.length; i++) {
                                 var tempFood = d.sunday[i];
-                                foodHtml += '<div style="margin-top: 5px;background-color: #d2d2d2;border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
-                                foodHtml += '<div style="background-color: #d2d2d2;">';
+                                foodHtml += '<div class="order-div">';
+                                foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
+                                foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
+                                foodHtml += '<input type="hidden" id="type" value="' + tempFood.type + '">';
+                                foodHtml += '<div style="border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
+                                foodHtml += '<div>';
                                 for (var j = 0; j < tempFood.food.length; j++) {
                                     foodHtml += tempFood.food[j].dishName + '<br/>';
                                 }
+                                foodHtml += '</div>';
                                 foodHtml += '</div>';
                             }
                         }
@@ -238,6 +300,99 @@
                 /** 设置表头背景色和文字样式 */
                 // $('th').css({'background-color': '#009688', 'color': '#fff', 'font-weight': 'bold'});
             }
+        });
+
+        function getHexBackgroundColor(rgb) {
+            // var rgb = $(this).css('background-color');
+            // if (!$.browser.msie) {
+            rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+
+            function hex(x) {
+                return ("0" + parseInt(x).toString(16)).slice(-2);
+            }
+
+            rgb = "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+            // }
+            return rgb;
+        }
+
+        var chooseTableData = new Array();
+
+        $(document).on('click', '.order-div, .order-div-choose', function () {
+            // var backgroundColor = getHexBackgroundColor($(this).css("background-color"));
+            // alert(backgroundColor);
+            var css = $(this).attr("class");
+            var setMealId = $(this).find("#setMealId").val();
+            var price = $(this).find("#price").val()
+            var type = $(this).find("#type").val()
+
+            var record = {
+                recipesId: recipesId
+                , setMealId: setMealId
+                , price: price
+                , type: type
+            };
+
+            if (css == "order-div-choose") {
+                $(this).removeClass("order-div-choose");
+                $(this).addClass("order-div");
+
+                chooseTableData = chooseTableData.filter(function (item) {
+                    return item.setMealId != setMealId
+                });
+            } else if (css == "order-div") {
+                $(this).removeClass("order-div");
+                $(this).addClass("order-div-choose");
+
+                chooseTableData.push(record);
+            } else {
+
+            }
+        });
+
+        // 表单提交事件
+        form.on('submit(orderRecipes)', function (d) {
+            if (chooseTableData.length == 0) {
+                layer.msg("请选择菜谱");
+                return false;
+            }
+
+            var msgIndex = layer.msg('系统处理中，请等待...', {shade: [0.8, '#393D49'], icon: 16, time: false});
+
+            $.ajax({
+                type: 'POST',
+                url: '/order/saveOrderRecipes',
+                contentType: "application/json; charset=utf-8",
+                async: true,
+                data: JSON.stringify(chooseTableData),
+                dataType: "json",
+                success: function (res) {
+                    layer.close(msgIndex);
+
+                    if (res.code == 200) {
+                        parent.layui.table.reload('data_table');
+                        var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                        parent.layer.close(index); //再执行关闭
+                        parent.layer.msg("预订成功！", {icon: 1});
+                    } else {
+                        layer.alert("预订失败，" + res.msg, {
+                            icon: 5,
+                            btnAlign: 'c', //按钮居中
+                            title: "提示"
+                        });
+                    }
+                },
+                error: function (msg) {
+                    layer.close(msgIndex);
+
+                    layer.alert("预订失败: " + msg.responseText, {
+                        icon: 5,
+                        btnAlign: 'c', //按钮居中
+                        title: "提示"
+                    });
+                }
+            });
+            return false;
         });
 
         $(document).on('click', '#cancelBtn', function () {

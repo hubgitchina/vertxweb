@@ -121,6 +121,9 @@
                             <dd data-name="button">
                                 <a lay-href="recipes/publish">发布菜谱</a>
                             </dd>
+                            <dd data-name="button">
+                                <a lay-href="order/recipes">我要订餐</a>
+                            </dd>
                             <dd data-name="tabs">
                                 <a lay-href="component/tabs/index.html">订餐统计</a>
                             </dd>
