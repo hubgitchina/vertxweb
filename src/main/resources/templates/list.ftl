@@ -108,6 +108,31 @@
 
 
 <script src="/static/layui/layui.js"></script>
+
+<style>
+    .order-div {
+        margin-top: 5px;
+        background-color: #2F4056;
+        color: #fff;
+        cursor: pointer;
+    }
+
+    .order-div:hover {
+        background-color: #5FB878;
+    }
+
+    .order-div-choose {
+        margin-top: 5px;
+        background-color: #1E9FFF;
+        color: #fff;
+        cursor: pointer;
+    }
+
+    .order-div-choose:hover {
+        background-color: #5FB878;
+    }
+</style>
+
 <script charset="utf-8">
 
     layui.use(['layer', 'form', 'table', 'laytpl'], function () {
@@ -116,6 +141,8 @@
         var form = layui.form;
         var table = layui.table;
         var laytpl = layui.laytpl;
+
+        var recipesId = '${recipesId!}';
 
         $.ajax({
             type: "POST",
@@ -152,16 +179,17 @@
         table.render({
             limit: 10,
             elem: '#data_table',
-            url: "/main/getList",
-            // where: {
-            //     voucherId: voucherId
-            // },
+            // url: "/main/getList",
+            url: "/recipes/getRecipesById",
+            where: {
+                recipesId: recipesId
+            },
             title: '数据列表',
             method: 'post',
             height: '489',
             // skin: 'nob',
             // even: true,
-            page: true,
+            // page: true,
             cols: [[
                 {field: 'id', title: 'ID', align: 'center', hide: true}
                 // , {field: 'type', title: '餐别', align: 'center', style: 'background-color: #5792c6; color: #fff;'}
@@ -170,35 +198,197 @@
                     field: 'monday', title: '${monday}<br/>星期一', align: 'center'
                     , templet: function (d) {
                         var foodHtml = '';
-                        if(d.monday && d.monday.length > 0){
-                            for(var i=0; i<d.monday.length; i++){
+                        if (d.monday && d.monday.length > 0) {
+                            for (var i = 0; i < d.monday.length; i++) {
                                 var tempFood = d.monday[i];
-                                if(tempFood.isChoose == 1){
-                                    foodHtml += '<div class="layui-bg-blue" style="margin-top: 5px;">'+tempFood.name;
-                                }else{
-                                    foodHtml += '<div class="layui-bg-cyan" style="margin-top: 5px;">'+tempFood.name;
+                                if (tempFood.isChoose == 1) {
+                                    foodHtml += '<div class="order-div-choose">';
+                                } else {
+                                    foodHtml += '<div class="order-div">';
                                 }
-                                for(var j=0; j<tempFood.food.length;j++){
-                                    foodHtml += '<br/>'+tempFood.food[j];
+                                foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
+                                foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
+                                foodHtml += '<input type="hidden" id="type" value="' + tempFood.type + '">';
+                                foodHtml += '<div style="border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
+                                foodHtml += '<div>';
+                                for (var j = 0; j < tempFood.food.length; j++) {
+                                    foodHtml += tempFood.food[j].dishName + '<br/>';
                                 }
                                 foodHtml += '</div>';
+                                foodHtml += '</div>';
                             }
-                            return foodHtml;
                         }
-                        return '<div class="layui-bg-blue">无数据</div>';
+                        return foodHtml;
                     }
                 }
-                , {field: 'tuesday', title: '${tuesday}<br/>星期二', align: 'center'}
-                , {field: 'wednesday', title: '${wednesday}<br/>星期三', align: 'center'}
-                , {field: 'thursday', title: '${thursday}<br/>星期四', align: 'center'}
-                , {field: 'friday', title: '${friday}<br/>星期五', align: 'center'}
-                , {field: 'saturday', title: '${saturday}<br/>星期六', align: 'center'}
-                , {field: 'sunday', title: '${sunday}<br/>星期天', align: 'center'}
+                , {
+                    field: 'tuesday', title: '${tuesday}<br/>星期二', align: 'center'
+                    , templet: function (d) {
+                        var foodHtml = '';
+                        if (d.tuesday && d.tuesday.length > 0) {
+                            for (var i = 0; i < d.tuesday.length; i++) {
+                                var tempFood = d.tuesday[i];
+                                if (tempFood.isChoose == 1) {
+                                    foodHtml += '<div class="order-div-choose">';
+                                } else {
+                                    foodHtml += '<div class="order-div">';
+                                }
+                                foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
+                                foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
+                                foodHtml += '<input type="hidden" id="type" value="' + tempFood.type + '">';
+                                foodHtml += '<div style="border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
+                                foodHtml += '<div>';
+                                for (var j = 0; j < tempFood.food.length; j++) {
+                                    foodHtml += tempFood.food[j].dishName + '<br/>';
+                                }
+                                foodHtml += '</div>';
+                                foodHtml += '</div>';
+                            }
+                        }
+                        return foodHtml;
+                    }
+                }
+                , {
+                    field: 'wednesday', title: '${wednesday}<br/>星期三', align: 'center'
+                    , templet: function (d) {
+                        var foodHtml = '';
+                        if (d.wednesday && d.wednesday.length > 0) {
+                            for (var i = 0; i < d.wednesday.length; i++) {
+                                var tempFood = d.wednesday[i];
+                                if (tempFood.isChoose == 1) {
+                                    foodHtml += '<div class="order-div-choose">';
+                                } else {
+                                    foodHtml += '<div class="order-div">';
+                                }
+                                foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
+                                foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
+                                foodHtml += '<input type="hidden" id="type" value="' + tempFood.type + '">';
+                                foodHtml += '<div style="border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
+                                foodHtml += '<div>';
+                                for (var j = 0; j < tempFood.food.length; j++) {
+                                    foodHtml += tempFood.food[j].dishName + '<br/>';
+                                }
+                                foodHtml += '</div>';
+                                foodHtml += '</div>';
+                            }
+                        }
+                        return foodHtml;
+                    }
+                }
+                , {
+                    field: 'thursday', title: '${thursday}<br/>星期四', align: 'center'
+                    , templet: function (d) {
+                        var foodHtml = '';
+                        if (d.thursday && d.thursday.length > 0) {
+                            for (var i = 0; i < d.thursday.length; i++) {
+                                var tempFood = d.thursday[i];
+                                if (tempFood.isChoose == 1) {
+                                    foodHtml += '<div class="order-div-choose">';
+                                } else {
+                                    foodHtml += '<div class="order-div">';
+                                }
+                                foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
+                                foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
+                                foodHtml += '<input type="hidden" id="type" value="' + tempFood.type + '">';
+                                foodHtml += '<div style="border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
+                                foodHtml += '<div>';
+                                for (var j = 0; j < tempFood.food.length; j++) {
+                                    foodHtml += tempFood.food[j].dishName + '<br/>';
+                                }
+                                foodHtml += '</div>';
+                                foodHtml += '</div>';
+                            }
+                        }
+                        return foodHtml;
+                    }
+                }
+                , {
+                    field: 'friday', title: '${friday}<br/>星期五', align: 'center'
+                    , templet: function (d) {
+                        var foodHtml = '';
+                        if (d.friday && d.friday.length > 0) {
+                            for (var i = 0; i < d.friday.length; i++) {
+                                var tempFood = d.friday[i];
+                                if (tempFood.isChoose == 1) {
+                                    foodHtml += '<div class="order-div-choose">';
+                                } else {
+                                    foodHtml += '<div class="order-div">';
+                                }
+                                foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
+                                foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
+                                foodHtml += '<input type="hidden" id="type" value="' + tempFood.type + '">';
+                                foodHtml += '<div style="border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
+                                foodHtml += '<div>';
+                                for (var j = 0; j < tempFood.food.length; j++) {
+                                    foodHtml += tempFood.food[j].dishName + '<br/>';
+                                }
+                                foodHtml += '</div>';
+                                foodHtml += '</div>';
+                            }
+                        }
+                        return foodHtml;
+                    }
+                }
+                , {
+                    field: 'saturday', title: '${saturday}<br/>星期六', align: 'center'
+                    , templet: function (d) {
+                        var foodHtml = '';
+                        if (d.saturday && d.saturday.length > 0) {
+                            for (var i = 0; i < d.saturday.length; i++) {
+                                var tempFood = d.saturday[i];
+                                if (tempFood.isChoose == 1) {
+                                    foodHtml += '<div class="order-div-choose">';
+                                } else {
+                                    foodHtml += '<div class="order-div">';
+                                }
+                                foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
+                                foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
+                                foodHtml += '<input type="hidden" id="type" value="' + tempFood.type + '">';
+                                foodHtml += '<div style="border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
+                                foodHtml += '<div>';
+                                for (var j = 0; j < tempFood.food.length; j++) {
+                                    foodHtml += tempFood.food[j].dishName + '<br/>';
+                                }
+                                foodHtml += '</div>';
+                                foodHtml += '</div>';
+                            }
+                        }
+                        return foodHtml;
+                    }
+                }
+                , {
+                    field: 'sunday', title: '${sunday}<br/>星期天', align: 'center'
+                    , templet: function (d) {
+                        var foodHtml = '';
+                        if (d.sunday && d.sunday.length > 0) {
+                            for (var i = 0; i < d.sunday.length; i++) {
+                                var tempFood = d.sunday[i];
+                                if (tempFood.isChoose == 1) {
+                                    foodHtml += '<div class="order-div-choose">';
+                                } else {
+                                    foodHtml += '<div class="order-div">';
+                                }
+                                foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
+                                foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
+                                foodHtml += '<input type="hidden" id="type" value="' + tempFood.type + '">';
+                                foodHtml += '<div style="border-bottom:1px solid #c2c2c2;">' + tempFood.setMealName + '(' + tempFood.price + '元)</div>';
+                                foodHtml += '<div>';
+                                for (var j = 0; j < tempFood.food.length; j++) {
+                                    foodHtml += tempFood.food[j].dishName + '<br/>';
+                                }
+                                foodHtml += '</div>';
+                                foodHtml += '</div>';
+                            }
+                        }
+                        return foodHtml;
+                    }
+                }
             ]]
             , response: {
                 statusCode: 200 //重新规定成功的状态码为 200，table 组件默认为 0
             }
             , parseData: function (res) { //将原始数据解析成 table 组件所规定的数据
+                setChooseTableData(res.data);
                 return {
                     "code": res.code, //解析接口状态
                     "msg": res.msg, //解析提示文本
@@ -233,6 +423,37 @@
                 // });
             }
         });
+
+        var chooseTableData = new Array();
+
+        <#list orderList as order>
+        var recordOrder = {
+            recipesId: recipesId
+            , setMealId: '${order.recipes_set_meal_id!}'
+            , price: '${order.price!}'
+            , type: '${order.type!}'
+        };
+        chooseTableData.push(recordOrder);
+        </#list>
+
+        function setChooseTableData(recipesList) {
+            for (var i = 0, len1 = recipesList.length; i < len1; i++) {
+                var tempRecipes = recipesList[i];
+                for (var key in tempRecipes) {
+                    var tempRecipesList = tempRecipes[key];
+                    for (var j = 0, len2 = tempRecipesList.length; j < len2; j++) {
+                        var tempRecipesDetail = tempRecipesList[j];
+                        for (var k = 0, len3 = chooseTableData.length; k < len3; k++) {
+                            var tempOrder = chooseTableData[k];
+                            if (tempOrder.setMealId == tempRecipesDetail.id) {
+                                tempRecipesDetail.isChoose = 1;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         var param = {
             id: '1'

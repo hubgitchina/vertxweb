@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -276,21 +277,48 @@ public class RecipesPublishAsyncServiceImpl
 	}
 
 	@Override
-	public void getRecipesDetail(String recipesId,
+	public void getRecipesDetail(String recipesId, String startDate, String endDate,
 			Handler<AsyncResult<List<JSONObject>>> resultHandler) {
 
-		String sql = "select m.id as setMealId, m.set_meal_name, m.price, m.is_set_meal, m.type, m.date, m.week,f.id as foodId, f.category, f.dish_name, f.sort"
-				+ " from recipes_set_meal m left join recipes_publish_set_meal_food f on f.recipes_set_meal_id = m.id "
-				+ "where m.recipes_publish_id = ?  and m.is_del = 0 and f.is_del = 0 order by m.week, m.type, m.id, f.sort";
+		StringBuilder sBuilder = new StringBuilder();
+		sBuilder.append(
+				"select r.id, m.id as setMealId, m.set_meal_name, m.price, m.is_set_meal, m.type, m.date, m.week,f.id as foodId, f.category, f.dish_name, f.sort"
+						+ " from recipes_publish r left join recipes_set_meal m on m.recipes_publish_id = r.id left join recipes_publish_set_meal_food f on f.recipes_set_meal_id = m.id"
+						+ " where r.is_del = 0 and m.is_del = 0 and f.is_del = 0");
+		if (StringUtils.isNotBlank(recipesId)) {
+			sBuilder.append(" and r.id = ?");
+		}
+		if (StringUtils.isNotBlank(startDate) && StringUtils.isNotBlank(endDate)) {
+			sBuilder.append(" and r.start_date = ? and r.end_date = ?");
+		}
+		sBuilder.append(" order by m.week, m.type, m.id, f.sort");
+
+		// String sql = "select m.id as setMealId, m.set_meal_name, m.price,
+		// m.is_set_meal, m.type, m.date, m.week,f.id as foodId, f.category,
+		// f.dish_name, f.sort"
+		// + ", case when o.id is null then 0 else 1 end as isOrder"
+		// + " from recipes_set_meal m left join recipes_publish_set_meal_food f on
+		// f.recipes_set_meal_id = m.id"
+		// + " left join order_food_record o on o.recipes_set_meal_id = m.id"
+		// + " where m.recipes_publish_id = ? and m.is_del = 0 and f.is_del = 0 order by
+		// m.week, m.type, m.id, f.sort";
 
 		JsonArray params = new JsonArray();
-		params.add(recipesId);
+		if (StringUtils.isNotBlank(recipesId)) {
+			params.add(recipesId);
+		}
+		if (StringUtils.isNotBlank(startDate) && StringUtils.isNotBlank(endDate)) {
+			params.add(startDate);
+			params.add(endDate);
+		}
 
 		// 执行查询
-		jdbcClient.queryWithParams(sql, params, res -> {
+		jdbcClient.queryWithParams(sBuilder.toString(), params, res -> {
 			if (res.succeeded()) {
 				ResultSet resultSet = res.result();
 				List<JsonObject> rows = resultSet.getRows();
+
+				// List<JSONObject> orderList = Lists.newArrayList();
 
 				JSONObject breakfastJson = new JSONObject();
 				JSONObject lunchJson = new JSONObject();
@@ -332,6 +360,7 @@ public class RecipesPublishAsyncServiceImpl
 				String setMealName = "";
 				String week = "";
 				int type = 0;
+				// int isOrder = 0;
 				BigDecimal price = BigDecimal.ZERO;
 
 				JSONObject setMealJson;
@@ -348,6 +377,8 @@ public class RecipesPublishAsyncServiceImpl
 					String dishName = tempJson.getString("dish_name");
 					String category = tempJson.getString("category");
 
+					// int tempIsOrder = tempJson.getIntValue("isOrder");
+
 					JSONObject foodJson = new JSONObject();
 					foodJson.put("foodId", foodId);
 					foodJson.put("dishName", dishName);
@@ -361,6 +392,7 @@ public class RecipesPublishAsyncServiceImpl
 						week = tempWeek;
 						type = tempType;
 						price = tempPrice;
+						// isOrder = tempIsOrder;
 
 						foodList = Lists.newArrayList();
 						foodList.add(foodJson);
@@ -373,6 +405,17 @@ public class RecipesPublishAsyncServiceImpl
 							setMealJson.put("setMealName", setMealName);
 							setMealJson.put("price", price);
 							setMealJson.put("type", type);
+							// setMealJson.put("isChoose", isOrder);
+
+							// if (1 == isOrder) {
+							// JSONObject orderJson = new JSONObject(4);
+							// orderJson.put("recipesId", recipesId);
+							// orderJson.put("setMealId", setMealId);
+							// orderJson.put("price", price);
+							// orderJson.put("type", type);
+							//
+							// orderList.add(orderJson);
+							// }
 
 							if (CollectionUtils.isNotEmpty(foodList)) {
 								List<JSONObject> tempFoodList = Lists
@@ -395,6 +438,7 @@ public class RecipesPublishAsyncServiceImpl
 							week = tempWeek;
 							type = tempType;
 							price = tempPrice;
+							// isOrder = tempIsOrder;
 
 							foodList.add(foodJson);
 						}
@@ -406,13 +450,23 @@ public class RecipesPublishAsyncServiceImpl
 						setMealJson.put("setMealName", setMealName);
 						setMealJson.put("price", price);
 						setMealJson.put("type", type);
+						// setMealJson.put("isChoose", isOrder);
 						setMealJson.put("food", foodList);
 
-						addSetMealFood(week, type, setMealJson, monday1, monday2, monday3,
-								tuesday1, tuesday2, tuesday3, wednesday1, wednesday2,
-								wednesday3, thursday1, thursday2, thursday3, friday1, friday2,
-								friday3, saturday1, saturday2, saturday3, sunday1, sunday2,
-								sunday3);
+						// if (1 == isOrder) {
+						// JSONObject orderJson = new JSONObject(4);
+						// orderJson.put("recipesId", recipesId);
+						// orderJson.put("setMealId", setMealId);
+						// orderJson.put("price", price);
+						// orderJson.put("type", type);
+						//
+						// orderList.add(orderJson);
+						// }
+
+						addSetMealFood(week, type, setMealJson, monday1, monday2, monday3, tuesday1,
+								tuesday2, tuesday3, wednesday1, wednesday2, wednesday3, thursday1,
+								thursday2, thursday3, friday1, friday2, friday3, saturday1,
+								saturday2, saturday3, sunday1, sunday2, sunday3);
 					}
 				}
 

@@ -144,7 +144,7 @@
         table.on('tool(data_table)', function (obj) {
             var f = obj.data;
             if (obj.event === 'look') {
-                lookRecipes(f.id, f.start_date, f.end_date);
+                lookOrderRecipes(f.id, f.start_date, f.end_date);
             } else if (obj.event === 'order') {
                 orderRecipes(f.id, f.start_date, f.end_date);
             } else if (obj.event === 'reply') {
@@ -154,13 +154,13 @@
             }
         });
 
-        function lookRecipes(id, startDate, endDate) {
+        function lookOrderRecipes(id, startDate, endDate) {
             layer.open({
                 type: 2,
                 area: ['80%', '95%'],
                 // offset: '65px',
                 title: '查看-菜谱',
-                content: '/recipes/lookRecipes?id=' + id + '&startDate=' + startDate + '&endDate=' + endDate,
+                content: '/order/lookOrderRecipes?id=' + id + '&startDate=' + startDate + '&endDate=' + endDate,
                 // btn: ['关闭'],
                 // btnAlign: 'c',
                 // yes: function (index, layero) {

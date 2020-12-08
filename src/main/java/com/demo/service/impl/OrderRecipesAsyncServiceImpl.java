@@ -2,6 +2,7 @@ package com.demo.service.impl;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,6 +145,50 @@ public class OrderRecipesAsyncServiceImpl implements OrderRecipesAsyncService, B
 			} else {
 				logger.error("获取数据库连接失败：{}", conRes.cause().getMessage());
 				resultHandler.handle(Future.failedFuture(conRes.cause()));
+			}
+		});
+	}
+
+	@Override
+	public void queryOrderRecipesList(String recipesId, String userId, String startDate,
+			String endDate, Handler<AsyncResult<List<JSONObject>>> resultHandler) {
+
+		StringBuilder sBuilder = new StringBuilder();
+		if (StringUtils.isNotBlank(startDate) && StringUtils.isNotBlank(endDate)) {
+			sBuilder.append(
+					"select o.* from order_food_record o left join recipes_publish r on r.id = o.recipes_publish_id where o.is_del = 0 and o.order_user_id = ? and r.start_date = ? and r.end_date = ? order by o.create_date");
+		} else {
+			sBuilder.append(
+					"select * from order_food_record where is_del = 0 and order_user_id = ? and recipes_publish_id = ? order by create_date");
+		}
+
+		// 构造参数
+		JsonArray params = new JsonArray();
+		params.add(userId);
+		if (StringUtils.isNotBlank(startDate) && StringUtils.isNotBlank(endDate)) {
+			params.add(startDate);
+			params.add(endDate);
+		} else {
+			params.add(recipesId);
+		}
+		// 执行查询
+		jdbcClient.queryWithParams(sBuilder.toString(), params, res -> {
+			if (res.succeeded()) {
+				ResultSet resultSet = res.result();
+				List<JsonObject> rows = resultSet.getRows();
+
+				List<JSONObject> list = Lists.newArrayListWithCapacity(rows.size());
+
+				for (JsonObject jsonObject : rows) {
+					JSONObject fastObject = jsonObject.mapTo(JSONObject.class);
+
+					list.add(fastObject);
+				}
+
+				Future.succeededFuture(list).onComplete(resultHandler);
+			} else {
+				logger.error("查询订餐记录失败：{}", res.cause().getMessage());
+				resultHandler.handle(Future.failedFuture(res.cause()));
 			}
 		});
 	}

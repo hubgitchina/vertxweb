@@ -106,11 +106,23 @@ public class OrderRecipesController {
 			data.put("saturday", date.plusDays(5).toString("yyyy-MM-dd"));
 			data.put("sunday", date.plusDays(6).toString("yyyy-MM-dd"));
 
-			templateEngine.render(data, "templates/order_recipes", res -> {
-				if (res.succeeded()) {
-					routingContext.response().end(res.result());
+			String userId = routingContext.user().principal().getString("userId");
+
+			orderRecipesAsyncService.queryOrderRecipesList(id, userId, null, null, result -> {
+				if (result.succeeded()) {
+					List<JSONObject> orderList = result.result();
+
+					data.put("orderList", orderList);
+
+					templateEngine.render(data, "templates/order_recipes", res -> {
+						if (res.succeeded()) {
+							routingContext.response().end(res.result());
+						} else {
+							routingContext.fail(res.cause());
+						}
+					});
 				} else {
-					routingContext.fail(res.cause());
+					routingContext.fail(result.cause());
 				}
 			});
 		};
@@ -154,6 +166,49 @@ public class OrderRecipesController {
 					vertxRequest.buildVertxRespone().responeSuccess(count);
 				} else {
 					vertxRequest.buildVertxRespone().responseFail(result.cause().getMessage());
+				}
+			});
+		};
+	}
+
+	@RequestMapping("/lookOrderRecipes")
+	public Handler<RoutingContext> lookRecipes() {
+
+		return routingContext -> {
+
+			String id = routingContext.request().getParam("id");
+			String startDate = routingContext.request().getParam("startDate");
+			String endDate = routingContext.request().getParam("endDate");
+
+			DateTime date = new DateTime(startDate);
+
+			JsonObject data = new JsonObject();
+			data.put("recipesId", id);
+			data.put("monday", date.toString("yyyy-MM-dd"));
+			data.put("tuesday", date.plusDays(1).toString("yyyy-MM-dd"));
+			data.put("wednesday", date.plusDays(2).toString("yyyy-MM-dd"));
+			data.put("thursday", date.plusDays(3).toString("yyyy-MM-dd"));
+			data.put("friday", date.plusDays(4).toString("yyyy-MM-dd"));
+			data.put("saturday", date.plusDays(5).toString("yyyy-MM-dd"));
+			data.put("sunday", date.plusDays(6).toString("yyyy-MM-dd"));
+
+			String userId = routingContext.user().principal().getString("userId");
+
+			orderRecipesAsyncService.queryOrderRecipesList(id, userId, null, null, result -> {
+				if (result.succeeded()) {
+					List<JSONObject> orderList = result.result();
+
+					data.put("orderList", orderList);
+
+					templateEngine.render(data, "templates/look_order_recipes", res -> {
+						if (res.succeeded()) {
+							routingContext.response().end(res.result());
+						} else {
+							routingContext.fail(res.cause());
+						}
+					});
+				} else {
+					routingContext.fail(result.cause());
 				}
 			});
 		};

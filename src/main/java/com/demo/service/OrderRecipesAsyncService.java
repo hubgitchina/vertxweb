@@ -2,6 +2,7 @@ package com.demo.service;
 
 import java.util.List;
 
+import com.alibaba.fastjson.JSONObject;
 import com.demo.model.response.PageResponeWrapper;
 
 import io.vertx.core.AsyncResult;
@@ -28,4 +29,7 @@ public interface OrderRecipesAsyncService {
 			Handler<AsyncResult<PageResponeWrapper>> resultHandler);
 
 	void saveOrderRecipes(List<JsonArray> orderList, Handler<AsyncResult<Integer>> resultHandler);
+
+	void queryOrderRecipesList(String recipesId, String userId, String startDate, String endDate,
+			Handler<AsyncResult<List<JSONObject>>> resultHandler);
 }

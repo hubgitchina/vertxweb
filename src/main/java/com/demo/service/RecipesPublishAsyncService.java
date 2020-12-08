@@ -34,5 +34,6 @@ public interface RecipesPublishAsyncService {
 
 	void saveRecipesPublish(Map<String, Object> map, Handler<AsyncResult<String>> resultHandler);
 
-	void getRecipesDetail(String recipesId, Handler<AsyncResult<List<JSONObject>>> resultHandler);
+	void getRecipesDetail(String recipesId, String startDate, String endDate,
+			Handler<AsyncResult<List<JSONObject>>> resultHandler);
 }

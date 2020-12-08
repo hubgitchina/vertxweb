@@ -19,6 +19,7 @@ import com.demo.annotation.RequestMapping;
 import com.demo.base.ControllerHandler;
 import com.demo.enums.RequestMethod;
 import com.demo.model.response.PageResponeWrapper;
+import com.demo.service.OrderRecipesAsyncService;
 import com.demo.service.RecipesPublishAsyncService;
 import com.demo.util.DateUtil;
 import com.google.common.collect.Lists;
@@ -50,8 +51,11 @@ public class RecipesController {
 	@Autowired
 	private RecipesPublishAsyncService recipesPublishAsyncService;
 
-	@RequestMapping("/publish")
-	public Handler<RoutingContext> publish() {
+	@Autowired
+	private OrderRecipesAsyncService orderRecipesAsyncService;
+
+	@RequestMapping("/list")
+	public Handler<RoutingContext> list() {
 
 		return routingContext -> {
 
@@ -61,13 +65,51 @@ public class RecipesController {
 
 			data.put("msg", "本周菜谱");
 
-			data.put("monday", weekDate[0].toString("yyyy-MM-dd"));
+			String startDate = weekDate[0].toString("yyyy-MM-dd");
+			String endDate = weekDate[6].toString("yyyy-MM-dd");
+
+			data.put("monday", startDate);
 			data.put("tuesday", weekDate[1].toString("yyyy-MM-dd"));
 			data.put("wednesday", weekDate[2].toString("yyyy-MM-dd"));
 			data.put("thursday", weekDate[3].toString("yyyy-MM-dd"));
 			data.put("friday", weekDate[4].toString("yyyy-MM-dd"));
 			data.put("saturday", weekDate[5].toString("yyyy-MM-dd"));
-			data.put("sunday", weekDate[6].toString("yyyy-MM-dd"));
+			data.put("sunday", endDate);
+
+			String userId = routingContext.user().principal().getString("userId");
+
+			orderRecipesAsyncService.queryOrderRecipesList(null, userId, startDate, endDate,
+					result -> {
+						if (result.succeeded()) {
+							List<JSONObject> orderList = result.result();
+
+							data.put("orderList", orderList);
+
+							if (CollectionUtils.isNotEmpty(orderList)) {
+								data.put("recipesId",
+										orderList.get(0).getString("recipes_publish_id"));
+							}
+
+							templateEngine.render(data, "templates/list", res -> {
+								if (res.succeeded()) {
+									routingContext.response().end(res.result());
+								} else {
+									routingContext.fail(res.cause());
+								}
+							});
+						} else {
+							routingContext.fail(result.cause());
+						}
+					});
+		};
+	}
+
+	@RequestMapping("/publish")
+	public Handler<RoutingContext> publish() {
+
+		return routingContext -> {
+
+			JsonObject data = new JsonObject();
 
 			templateEngine.render(data, "templates/publish", res -> {
 				if (res.succeeded()) {
@@ -218,7 +260,7 @@ public class RecipesController {
 			JsonObject data = new JsonObject();
 			data.put("recipesId", id);
 			data.put("monday", date.toString("yyyy-MM-dd"));
-			data.put("tuesday",date.plusDays(1).toString("yyyy-MM-dd"));
+			data.put("tuesday", date.plusDays(1).toString("yyyy-MM-dd"));
 			data.put("wednesday", date.plusDays(2).toString("yyyy-MM-dd"));
 			data.put("thursday", date.plusDays(3).toString("yyyy-MM-dd"));
 			data.put("friday", date.plusDays(4).toString("yyyy-MM-dd"));
@@ -435,9 +477,19 @@ public class RecipesController {
 
 			String recipesId = vertxRequest.getParam("recipesId").get();
 
-			logger.info("pageNo为 {} ，pageSize为 {}", page, limit);
+			logger.info("pageNo为 {} ，pageSize为 {} ，recipesId为 {}", page, limit, recipesId);
 
-			recipesPublishAsyncService.getRecipesDetail(recipesId, result -> {
+			String startDate = "";
+			String endDate = "";
+
+			if (StringUtils.isBlank(recipesId)) {
+				DateTime dateTime = new DateTime();
+				dateTime = dateTime.dayOfWeek().withMinimumValue();
+				startDate = dateTime.toString("yyyy-MM-dd");
+				endDate = dateTime.plusDays(6).toString("yyyy-MM-dd");
+			}
+
+			recipesPublishAsyncService.getRecipesDetail(recipesId, startDate, endDate, result -> {
 				if (result.succeeded()) {
 					List<JSONObject> recipesList = result.result();
 
@@ -455,7 +507,7 @@ public class RecipesController {
 		return routingContext -> {
 
 			JsonObject data = new JsonObject();
-			templateEngine.render(data, "templates/publish", res -> {
+			templateEngine.render(data, "templates/test", res -> {
 				if (res.succeeded()) {
 					routingContext.response().end(res.result());
 				} else {

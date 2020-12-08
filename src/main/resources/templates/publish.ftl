@@ -10,16 +10,6 @@
     <link rel="stylesheet" href="/static/css/admin.css" media="all">
 </head>
 
-<style type="text/css">
-    {
-        # 设置table每一行的height #
-    }
-    .layui-table-cell {
-        height: auto;
-        line-height: 28px;
-    }
-</style>
-
 <body>
 
 <div class="layui-fluid" style="padding: 15px; background-color: #F2F2F2;">

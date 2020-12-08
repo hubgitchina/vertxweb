@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>订餐页面</title>
+    <title>订餐查看页面</title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -58,9 +58,8 @@
             </div>
 
             <div class="layui-form-item text-right ">
-                <button class="layui-btn" lay-filter="orderRecipes" lay-submit>保存</button>
-                <button class="layui-btn layui-btn-primary" type="button" ew-event="cancelBtn" id="cancelBtn">
-                    取消
+                <button class="layui-btn layui-btn-normal" type="button" ew-event="cancelBtn" id="cancelBtn">
+                    关闭
                 </button>
             </div>
         </form>
@@ -331,20 +330,6 @@
             }
         });
 
-        function getHexBackgroundColor(rgb) {
-            // var rgb = $(this).css('background-color');
-            // if (!$.browser.msie) {
-            rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-
-            function hex(x) {
-                return ("0" + parseInt(x).toString(16)).slice(-2);
-            }
-
-            rgb = "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
-            // }
-            return rgb;
-        }
-
         var chooseTableData = new Array();
 
         <#list orderList as order>
@@ -375,83 +360,6 @@
                 }
             }
         }
-
-        $(document).on('click', '.order-div, .order-div-choose', function () {
-            // var backgroundColor = getHexBackgroundColor($(this).css("background-color"));
-            // alert(backgroundColor);
-            var css = $(this).attr("class");
-            var setMealId = $(this).find("#setMealId").val();
-            var price = $(this).find("#price").val()
-            var type = $(this).find("#type").val()
-
-            var record = {
-                recipesId: recipesId
-                , setMealId: setMealId
-                , price: price
-                , type: type
-            };
-
-            if (css == "order-div-choose") {
-                $(this).removeClass("order-div-choose");
-                $(this).addClass("order-div");
-
-                chooseTableData = chooseTableData.filter(function (item) {
-                    return item.setMealId != setMealId
-                });
-            } else if (css == "order-div") {
-                $(this).removeClass("order-div");
-                $(this).addClass("order-div-choose");
-
-                chooseTableData.push(record);
-            } else {
-
-            }
-        });
-
-        // 表单提交事件
-        form.on('submit(orderRecipes)', function (d) {
-            if (chooseTableData.length == 0) {
-                layer.msg("请选择菜谱");
-                return false;
-            }
-
-            var msgIndex = layer.msg('系统处理中，请等待...', {shade: [0.8, '#393D49'], icon: 16, time: false});
-
-            $.ajax({
-                type: 'POST',
-                url: '/order/saveOrderRecipes',
-                contentType: "application/json; charset=utf-8",
-                async: true,
-                data: JSON.stringify(chooseTableData),
-                dataType: "json",
-                success: function (res) {
-                    layer.close(msgIndex);
-
-                    if (res.code == 200) {
-                        parent.layui.table.reload('data_table');
-                        var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
-                        parent.layer.close(index); //再执行关闭
-                        parent.layer.msg("预订成功！", {icon: 1});
-                    } else {
-                        layer.alert("预订失败，" + res.msg, {
-                            icon: 5,
-                            btnAlign: 'c', //按钮居中
-                            title: "提示"
-                        });
-                    }
-                },
-                error: function (msg) {
-                    layer.close(msgIndex);
-
-                    layer.alert("预订失败: " + msg.responseText, {
-                        icon: 5,
-                        btnAlign: 'c', //按钮居中
-                        title: "提示"
-                    });
-                }
-            });
-            return false;
-        });
 
         $(document).on('click', '#cancelBtn', function () {
             var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引

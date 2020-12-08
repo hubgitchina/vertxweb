@@ -72,35 +72,6 @@ public class FreeMarkerController {
 		};
 	}
 
-	@RequestMapping("/list")
-	public Handler<RoutingContext> list() {
-
-		return routingContext -> {
-
-			LocalDate[] weekDate = DateUtil.getBeginAndEndOfTheWeek(0);
-
-			JsonObject data = new JsonObject();
-
-			data.put("msg", "本周菜谱");
-
-			data.put("monday", weekDate[0].toString("yyyy-MM-dd"));
-			data.put("tuesday", weekDate[1].toString("yyyy-MM-dd"));
-			data.put("wednesday", weekDate[2].toString("yyyy-MM-dd"));
-			data.put("thursday", weekDate[3].toString("yyyy-MM-dd"));
-			data.put("friday", weekDate[4].toString("yyyy-MM-dd"));
-			data.put("saturday", weekDate[5].toString("yyyy-MM-dd"));
-			data.put("sunday", weekDate[6].toString("yyyy-MM-dd"));
-
-			templateEngine.render(data, "templates/list", res -> {
-				if (res.succeeded()) {
-					routingContext.response().end(res.result());
-				} else {
-					routingContext.fail(res.cause());
-				}
-			});
-		};
-	}
-
 	@RequestMapping("/system/about")
 	public Handler<RoutingContext> about() {
 
