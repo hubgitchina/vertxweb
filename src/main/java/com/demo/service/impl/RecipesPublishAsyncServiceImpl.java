@@ -7,6 +7,8 @@ import java.util.Map;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -363,6 +365,10 @@ public class RecipesPublishAsyncServiceImpl
 				// int isOrder = 0;
 				BigDecimal price = BigDecimal.ZERO;
 
+				LocalDate localDate = LocalDate.now();
+				LocalTime localTime = LocalTime.now();
+				LocalTime time12 = new LocalTime(12, 0, 0);
+
 				JSONObject setMealJson;
 				List<JSONObject> foodList = null;
 				int size = rows.size();
@@ -378,6 +384,8 @@ public class RecipesPublishAsyncServiceImpl
 					String category = tempJson.getString("category");
 
 					// int tempIsOrder = tempJson.getIntValue("isOrder");
+
+					LocalDate tempDate = new LocalDate(tempJson.getString("date"));
 
 					JSONObject foodJson = new JSONObject();
 					foodJson.put("foodId", foodId);
@@ -416,6 +424,14 @@ public class RecipesPublishAsyncServiceImpl
 							//
 							// orderList.add(orderJson);
 							// }
+
+							/** 设置已过去日期不能点餐，当前时间超过12点不能对第二天点餐 */
+							if (tempDate.isBefore(localDate) || tempDate.isEqual(localDate)) {
+								setMealJson.put("readonly", 1);
+							} else if (localDate.plusDays(1).isEqual(tempDate)
+									&& localTime.isAfter(time12)) {
+								setMealJson.put("readonly", 1);
+							}
 
 							if (CollectionUtils.isNotEmpty(foodList)) {
 								List<JSONObject> tempFoodList = Lists
@@ -462,6 +478,14 @@ public class RecipesPublishAsyncServiceImpl
 						//
 						// orderList.add(orderJson);
 						// }
+
+						/** 设置已过去日期不能点餐，当前时间超过12点不能对第二天点餐 */
+						if (tempDate.isBefore(localDate) || tempDate.isEqual(localDate)) {
+							setMealJson.put("readonly", 1);
+						} else if (localDate.plusDays(1).isEqual(tempDate)
+								&& localTime.isAfter(time12)) {
+							setMealJson.put("readonly", 1);
+						}
 
 						addSetMealFood(week, type, setMealJson, monday1, monday2, monday3, tuesday1,
 								tuesday2, tuesday3, wednesday1, wednesday2, wednesday3, thursday1,

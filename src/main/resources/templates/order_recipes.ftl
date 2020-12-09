@@ -71,6 +71,18 @@
 <script src="/static/js/form-verify.js" charset="utf-8"></script>
 
 <style>
+    .order-div-readonly {
+        margin-top: 5px;
+        background-color: #e2e2e2;
+        color: #666;
+    }
+
+    .order-div-choose-readonly {
+        margin-top: 5px;
+        background-color: #2F4056;
+        color: #fff;
+    }
+
     .order-div {
         margin-top: 5px;
         background-color: #d2d2d2;
@@ -132,9 +144,17 @@
                             for (var i = 0; i < d.monday.length; i++) {
                                 var tempFood = d.monday[i];
                                 if (tempFood.isChoose == 1) {
-                                    foodHtml += '<div class="order-div-choose">';
+                                    if(tempFood.readonly == 1){
+                                        foodHtml += '<div class="order-div-choose-readonly">';
+                                    }else{
+                                        foodHtml += '<div class="order-div-choose">';
+                                    }
                                 } else {
-                                    foodHtml += '<div class="order-div">';
+                                    if(tempFood.readonly == 1){
+                                        foodHtml += '<div class="order-div-readonly">';
+                                    }else{
+                                        foodHtml += '<div class="order-div">';
+                                    }
                                 }
                                 foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
                                 foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
@@ -159,9 +179,17 @@
                             for (var i = 0; i < d.tuesday.length; i++) {
                                 var tempFood = d.tuesday[i];
                                 if (tempFood.isChoose == 1) {
-                                    foodHtml += '<div class="order-div-choose">';
+                                    if(tempFood.readonly == 1){
+                                        foodHtml += '<div class="order-div-choose-readonly">';
+                                    }else{
+                                        foodHtml += '<div class="order-div-choose">';
+                                    }
                                 } else {
-                                    foodHtml += '<div class="order-div">';
+                                    if(tempFood.readonly == 1){
+                                        foodHtml += '<div class="order-div-readonly">';
+                                    }else{
+                                        foodHtml += '<div class="order-div">';
+                                    }
                                 }
                                 foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
                                 foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
@@ -186,9 +214,17 @@
                             for (var i = 0; i < d.wednesday.length; i++) {
                                 var tempFood = d.wednesday[i];
                                 if (tempFood.isChoose == 1) {
-                                    foodHtml += '<div class="order-div-choose">';
+                                    if(tempFood.readonly == 1){
+                                        foodHtml += '<div class="order-div-choose-readonly">';
+                                    }else{
+                                        foodHtml += '<div class="order-div-choose">';
+                                    }
                                 } else {
-                                    foodHtml += '<div class="order-div">';
+                                    if(tempFood.readonly == 1){
+                                        foodHtml += '<div class="order-div-readonly">';
+                                    }else{
+                                        foodHtml += '<div class="order-div">';
+                                    }
                                 }
                                 foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
                                 foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
@@ -213,9 +249,17 @@
                             for (var i = 0; i < d.thursday.length; i++) {
                                 var tempFood = d.thursday[i];
                                 if (tempFood.isChoose == 1) {
-                                    foodHtml += '<div class="order-div-choose">';
+                                    if(tempFood.readonly == 1){
+                                        foodHtml += '<div class="order-div-choose-readonly">';
+                                    }else{
+                                        foodHtml += '<div class="order-div-choose">';
+                                    }
                                 } else {
-                                    foodHtml += '<div class="order-div">';
+                                    if(tempFood.readonly == 1){
+                                        foodHtml += '<div class="order-div-readonly">';
+                                    }else{
+                                        foodHtml += '<div class="order-div">';
+                                    }
                                 }
                                 foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
                                 foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
@@ -240,9 +284,17 @@
                             for (var i = 0; i < d.friday.length; i++) {
                                 var tempFood = d.friday[i];
                                 if (tempFood.isChoose == 1) {
-                                    foodHtml += '<div class="order-div-choose">';
+                                    if(tempFood.readonly == 1){
+                                        foodHtml += '<div class="order-div-choose-readonly">';
+                                    }else{
+                                        foodHtml += '<div class="order-div-choose">';
+                                    }
                                 } else {
-                                    foodHtml += '<div class="order-div">';
+                                    if(tempFood.readonly == 1){
+                                        foodHtml += '<div class="order-div-readonly">';
+                                    }else{
+                                        foodHtml += '<div class="order-div">';
+                                    }
                                 }
                                 foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
                                 foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
@@ -267,9 +319,17 @@
                             for (var i = 0; i < d.saturday.length; i++) {
                                 var tempFood = d.saturday[i];
                                 if (tempFood.isChoose == 1) {
-                                    foodHtml += '<div class="order-div-choose">';
+                                    if(tempFood.readonly == 1){
+                                        foodHtml += '<div class="order-div-choose-readonly">';
+                                    }else{
+                                        foodHtml += '<div class="order-div-choose">';
+                                    }
                                 } else {
-                                    foodHtml += '<div class="order-div">';
+                                    if(tempFood.readonly == 1){
+                                        foodHtml += '<div class="order-div-readonly">';
+                                    }else{
+                                        foodHtml += '<div class="order-div">';
+                                    }
                                 }
                                 foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
                                 foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
@@ -294,9 +354,17 @@
                             for (var i = 0; i < d.sunday.length; i++) {
                                 var tempFood = d.sunday[i];
                                 if (tempFood.isChoose == 1) {
-                                    foodHtml += '<div class="order-div-choose">';
+                                    if(tempFood.readonly == 1){
+                                        foodHtml += '<div class="order-div-choose-readonly">';
+                                    }else{
+                                        foodHtml += '<div class="order-div-choose">';
+                                    }
                                 } else {
-                                    foodHtml += '<div class="order-div">';
+                                    if(tempFood.readonly == 1){
+                                        foodHtml += '<div class="order-div-readonly">';
+                                    }else{
+                                        foodHtml += '<div class="order-div">';
+                                    }
                                 }
                                 foodHtml += '<input type="hidden" id="setMealId" value="' + tempFood.id + '">';
                                 foodHtml += '<input type="hidden" id="price" value="' + tempFood.price + '">';
