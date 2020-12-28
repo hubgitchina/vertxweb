@@ -73,7 +73,9 @@ public class OrderRecipesController {
 
 			logger.info("pageNo为 {} ，pageSize为 {}", page, limit);
 
-			orderRecipesAsyncService.queryOrderRecipesPage(page, limit, result -> {
+			String userId = vertxRequest.getRoutingContext().user().principal().getString("userId");
+
+			orderRecipesAsyncService.queryOrderRecipesPage(page, limit, userId, result -> {
 				if (result.succeeded()) {
 					PageResponeWrapper pageRespone = result.result();
 

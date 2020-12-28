@@ -25,7 +25,7 @@ public interface OrderRecipesAsyncService {
 	 * @Param
 	 * @return
 	 */
-	void queryOrderRecipesPage(int pageNo, int pageSize,
+	void queryOrderRecipesPage(int pageNo, int pageSize, String userId,
 			Handler<AsyncResult<PageResponeWrapper>> resultHandler);
 
 	void saveOrderRecipes(List<JsonArray> orderList, Handler<AsyncResult<Integer>> resultHandler);

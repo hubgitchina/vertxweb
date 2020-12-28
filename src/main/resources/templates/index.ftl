@@ -105,10 +105,10 @@
                                 <a lay-href="home/console.html">控制台</a>
                             </dd>
                             <dd data-name="console">
-                                <a lay-href="home/homepage1.html">主页一</a>
+                                <a lay-href="location/plan">主页一</a>
                             </dd>
                             <dd data-name="console">
-                                <a lay-href="home/homepage2.html">主页二</a>
+                                <a lay-href="location/amap">主页二</a>
                             </dd>
                         </dl>
                     </li>
@@ -180,12 +180,29 @@
 </div>
 
 <script src="/static/layui/layui.js"></script>
+<script src="/static/js/jquery-3.5.1.min.js"></script>
+
 <script charset="utf-8">
     layui.config({
         base: '/static' //静态资源所在路径
     }).extend({
         index: '/lib/index' //主入口模块
     }).use('index');
+
+    //超时跳转
+    $.ajaxSetup({
+        complete: function (XMLHttpRequest, textStatus) {
+            if (textStatus == "parsererror") {
+                window.location.href = '/index';
+            } else if (textStatus == "error") {
+                layer.alert("请求超时，请稍候重试", {
+                    icon: 5,
+                    btnAlign: 'c', //按钮居中
+                    title: "提示"
+                });
+            }
+        }
+    });
 </script>
 </body>
 </html>

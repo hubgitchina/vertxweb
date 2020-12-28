@@ -22,7 +22,7 @@ import io.vertx.core.eventbus.EventBusOptions;
 
 @SpringBootApplication
 @ComponentScan(value = { "com.demo.verticle", "com.demo.controller", "com.demo.handler",
-		"com.demo.service", "com.demo.config" })
+		"com.demo.service", "com.demo.config","com.demo.dijkstra" })
 public class VertxwebApplication {
 
 	private final Logger logger = LoggerFactory.getLogger(VertxwebApplication.class);

@@ -2,6 +2,7 @@ package com.demo.service.impl;
 
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -41,7 +42,7 @@ public class OrderRecipesAsyncServiceImpl implements OrderRecipesAsyncService, B
 	private JDBCClient jdbcClient;
 
 	@Override
-	public void queryOrderRecipesPage(int pageNo, int pageSize,
+	public void queryOrderRecipesPage(int pageNo, int pageSize, String userId,
 			Handler<AsyncResult<PageResponeWrapper>> resultHandler) {
 
 		String countSql = "select count(*) from recipes_publish where is_del = 0 and status = 1";
@@ -56,9 +57,14 @@ public class OrderRecipesAsyncServiceImpl implements OrderRecipesAsyncService, B
 				logger.info("记录总数为：{}", count);
 
 				if (count > 0) {
-					String sql = "select r.*, case when o.id is null then 0 else 1 end as isOrder"
-							+ " from recipes_publish r left join order_food_record o on o.recipes_publish_id = r.id"
-							+ " where r.is_del = 0 and r.status = 1 group by r.id order by r.create_date desc limit ?,?";
+					// String sql = "select r.*, case when o.id is null then 0 else 1 end as
+					// isOrder"
+					// + " from recipes_publish r left join order_food_record o on
+					// o.recipes_publish_id = r.id"
+					// + " where r.is_del = 0 and r.status = 1 group by r.id order by r.create_date
+					// desc limit ?,?";
+
+					String sql = "select r.* from recipes_publish r where r.is_del = 0 and r.status = 1 order by r.create_date desc limit ?,?";
 
 					// 构造参数
 					JsonArray params = new JsonArray();
@@ -73,6 +79,8 @@ public class OrderRecipesAsyncServiceImpl implements OrderRecipesAsyncService, B
 							// 把ResultSet转为List<JsonObject>形式
 							List<JsonObject> rows = resultSet.getRows();
 							List<JSONObject> list = Lists.newArrayListWithCapacity(rows.size());
+
+							List<String> idList = Lists.newArrayListWithCapacity(list.size());
 
 							DateTime nowDate = new DateTime();
 							for (JsonObject jsonObject : rows) {
@@ -92,12 +100,52 @@ public class OrderRecipesAsyncServiceImpl implements OrderRecipesAsyncService, B
 								}
 
 								list.add(fastObject);
+
+								idList.add(fastObject.getString("id"));
 							}
 
-							PageResponeWrapper pageRespone = new PageResponeWrapper(list, 1, 10,
-									count);
+							if (CollectionUtils.isNotEmpty(idList)) {
+								String orderSql = "select recipes_publish_id from order_food_record where"
+										+ " is_del = 0 and order_status = 1 and recipes_publish_id in (?) and order_user_id = ?"
+										+ " group by recipes_publish_id";
 
-							Future.succeededFuture(pageRespone).onComplete(resultHandler);
+								// 构造参数
+								JsonArray orderParams = new JsonArray();
+								orderParams.add(String.join(",", idList));
+								orderParams.add(userId);
+
+								// 执行查询
+								jdbcClient.queryWithParams(orderSql, orderParams, orderRes -> {
+									if (orderRes.succeeded()) {
+										ResultSet orderResultSet = orderRes.result();
+										List<JsonObject> orderRows = orderResultSet.getRows();
+
+										for (JSONObject jsonObject : list) {
+											for (JsonObject orderRow : orderRows) {
+												JSONObject orderJson = orderRow
+														.mapTo(JSONObject.class);
+												String recipesId = orderJson
+														.getString("recipes_publish_id");
+												if (recipesId.equals(jsonObject.getString("id"))) {
+													jsonObject.put("isOrder", 1);
+
+													break;
+												}
+											}
+										}
+
+										PageResponeWrapper pageRespone = new PageResponeWrapper(
+												list, pageNo, pageSize, count);
+
+										Future.succeededFuture(pageRespone)
+												.onComplete(resultHandler);
+									} else {
+										logger.error("查询用户【{}】订餐记录失败：{}", userId,
+												orderRes.cause().getMessage());
+										resultHandler.handle(Future.failedFuture(orderRes.cause()));
+									}
+								});
+							}
 						} else {
 							logger.error("查询失败：{}", res.cause().getMessage());
 							resultHandler.handle(Future.failedFuture(res.cause()));

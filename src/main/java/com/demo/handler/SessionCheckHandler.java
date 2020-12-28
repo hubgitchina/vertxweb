@@ -48,6 +48,10 @@ public class SessionCheckHandler implements Handler<RoutingContext> {
 			Session session = event.session();
 			String userId = session.get("userId");
 			if (StringUtils.isBlank(userId)) {
+				logger.error("session验证失败，跳转登录");
+
+//				event.reroute("/login");
+
 				event.redirect("/login");
 
 				// JsonObject data = new JsonObject();
@@ -58,8 +62,6 @@ public class SessionCheckHandler implements Handler<RoutingContext> {
 				// event.fail(res.cause());
 				// }
 				// });
-
-				logger.error("session验证失败，跳转登录");
 			} else {
 				logger.info("session验证通过");
 

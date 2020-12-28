@@ -102,12 +102,10 @@
                 , {
                     field: 'status', title: '订餐状态', align: 'center'
                     , templet: function (d) {
-                        if (d.isOrder == 0) {
-                            return '<del style="color: #FF5722;"><span class="layui-btn layui-btn-xs layui-btn-radius layui-btn-danger">未订餐</span></del>';
-                        } else if (d.isOrder == 1) {
+                        if (d.isOrder == 1) {
                             return '<span class="layui-btn layui-btn-xs layui-btn-radius layui-btn-normal">已订餐</span>';
                         } else {
-                            return '';
+                            return '<del style="color: #FF5722;"><span class="layui-btn layui-btn-xs layui-btn-radius layui-btn-danger">未订餐</span></del>';
                         }
                     }
                 }
