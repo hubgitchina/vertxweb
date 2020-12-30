@@ -22,6 +22,7 @@ import com.demo.model.response.PageResponeWrapper;
 import com.demo.service.OrderRecipesAsyncService;
 import com.demo.service.RecipesPublishAsyncService;
 import com.demo.util.DateUtil;
+import com.demo.util.JdbcCommonUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -350,7 +351,7 @@ public class RecipesController {
 			}
 
 			JsonArray recipesJson = new JsonArray();
-			this.setCommonInfo(recipesJson, userId, recipesId);
+			JdbcCommonUtil.setCommonInfo(recipesJson, userId, recipesId);
 			recipesJson.add(startDate.toString("yyyy-MM-dd"));
 			recipesJson.add(endDate.toString("yyyy-MM-dd"));
 			recipesJson.add(0);
@@ -382,24 +383,6 @@ public class RecipesController {
 		batchFoodList.addAll(foodList);
 	}
 
-	private String setCommonInfo(JsonArray jsonArray, String userId, String id) {
-
-		if (StringUtils.isBlank(id)) {
-			id = IdUtil.simpleUUID();
-		}
-
-		String now = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
-
-		jsonArray.add(id);
-		jsonArray.add(now);
-		jsonArray.add(userId);
-		jsonArray.add(now);
-		jsonArray.add(userId);
-		jsonArray.add(0);
-
-		return id;
-	}
-
 	private Map<String, Object> setMealDetail(JSONArray jsonArray, String recipesId, int type,
 			String userId, LocalDate date, String week) {
 
@@ -412,7 +395,7 @@ public class RecipesController {
 			JSONObject tempJson = jsonArray.getJSONObject(i);
 
 			JsonArray setMealJson = new JsonArray();
-			String setMealId = this.setCommonInfo(setMealJson, userId, null);
+			String setMealId = JdbcCommonUtil.setCommonInfo(setMealJson, userId, null);
 
 			setMealJson.add(recipesId);
 			setMealJson.add(type);
@@ -449,7 +432,7 @@ public class RecipesController {
 			JSONObject tempJson = jsonArray.getJSONObject(i);
 
 			JsonArray foodJson = new JsonArray();
-			String foodId = this.setCommonInfo(foodJson, userId, null);
+			String foodId = JdbcCommonUtil.setCommonInfo(foodJson, userId, null);
 
 			foodJson.add(recipesId);
 			foodJson.add(setMealId);

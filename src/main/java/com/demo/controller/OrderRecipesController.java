@@ -3,7 +3,6 @@ package com.demo.controller;
 import java.math.BigDecimal;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +17,9 @@ import com.demo.base.ControllerHandler;
 import com.demo.enums.RequestMethod;
 import com.demo.model.response.PageResponeWrapper;
 import com.demo.service.OrderRecipesAsyncService;
+import com.demo.util.JdbcCommonUtil;
 import com.google.common.collect.Lists;
 
-import cn.hutool.core.util.IdUtil;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -149,7 +148,7 @@ public class OrderRecipesController {
 				int type = tempJson.getIntValue("type");
 
 				JsonArray orderJson = new JsonArray();
-				this.setCommonInfo(orderJson, userId, null);
+				JdbcCommonUtil.setCommonInfo(orderJson, userId, null);
 				orderJson.add(recipesId);
 				orderJson.add(setMealId);
 				orderJson.add(type);
@@ -216,21 +215,4 @@ public class OrderRecipesController {
 		};
 	}
 
-	private String setCommonInfo(JsonArray jsonArray, String userId, String id) {
-
-		if (StringUtils.isBlank(id)) {
-			id = IdUtil.simpleUUID();
-		}
-
-		String now = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
-
-		jsonArray.add(id);
-		jsonArray.add(now);
-		jsonArray.add(userId);
-		jsonArray.add(now);
-		jsonArray.add(userId);
-		jsonArray.add(0);
-
-		return id;
-	}
 }
