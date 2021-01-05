@@ -21,6 +21,12 @@ public interface CommentRecipesAsyncService {
 
 	void getRecipesCommentTotal(String recipesId, Handler<AsyncResult<Integer>> resultHandler);
 
-	void queryRecipesCommentList(int pageNo, int pageSize, String recipesId,
+	void queryRecipesCommentRootList(int pageNo, int pageSize, String recipesId,
+			Handler<AsyncResult<List<JSONObject>>> resultHandler);
+
+	void getRecipesCommentChildTotal(List<String> commentIdList,
+			Handler<AsyncResult<List<JSONObject>>> resultHandler);
+
+	void queryRecipesCommentChildList(int pageNo, int pageSize, String commentId,
 			Handler<AsyncResult<List<JSONObject>>> resultHandler);
 }

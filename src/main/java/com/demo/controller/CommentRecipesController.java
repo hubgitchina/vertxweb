@@ -120,8 +120,8 @@ public class CommentRecipesController {
 	}
 
 	@RequestBody
-	@RequestMapping(value = "/queryRecipesCommentList", method = RequestMethod.POST)
-	public ControllerHandler queryRecipesCommentList() {
+	@RequestMapping(value = "/queryRecipesCommentRootList", method = RequestMethod.POST)
+	public ControllerHandler queryRecipesCommentRootList() {
 
 		return vertxRequest -> {
 			JSONObject params = vertxRequest.getBodyJsonToBean(JSONObject.class);
@@ -133,15 +133,45 @@ public class CommentRecipesController {
 
 			logger.info("pageNo为 {} ，pageSize为 {} ，recipesId为 {}", page, limit, recipesId);
 
-			commentRecipesAsyncService.queryRecipesCommentList(page, limit, recipesId, result -> {
-				if (result.succeeded()) {
-					List<JSONObject> list = result.result();
+			commentRecipesAsyncService.queryRecipesCommentRootList(page, limit, recipesId,
+					result -> {
+						if (result.succeeded()) {
+							List<JSONObject> list = result.result();
 
-					vertxRequest.buildVertxRespone().responeSuccess(list);
-				} else {
-					vertxRequest.buildVertxRespone().responseFail(result.cause().getMessage());
-				}
-			});
+							vertxRequest.buildVertxRespone().responeSuccess(list);
+						} else {
+							vertxRequest.buildVertxRespone()
+									.responseFail(result.cause().getMessage());
+						}
+					});
+		};
+	}
+
+	@RequestBody
+	@RequestMapping(value = "/queryRecipesCommentChildList", method = RequestMethod.POST)
+	public ControllerHandler queryRecipesCommentChildList() {
+
+		return vertxRequest -> {
+			JSONObject params = vertxRequest.getBodyJsonToBean(JSONObject.class);
+			logger.info("参数 {}", params);
+
+			int page = params.getIntValue("page");
+			int limit = params.getIntValue("limit");
+			String rootCommentId = params.getString("rootCommentId");
+
+			logger.info("pageNo为 {} ，pageSize为 {} ，rootCommentId为 {}", page, limit, rootCommentId);
+
+			commentRecipesAsyncService.queryRecipesCommentChildList(page, limit, rootCommentId,
+					result -> {
+						if (result.succeeded()) {
+							List<JSONObject> list = result.result();
+
+							vertxRequest.buildVertxRespone().responeSuccess(list);
+						} else {
+							vertxRequest.buildVertxRespone()
+									.responseFail(result.cause().getMessage());
+						}
+					});
 		};
 	}
 

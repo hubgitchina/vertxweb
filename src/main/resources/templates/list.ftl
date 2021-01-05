@@ -74,26 +74,26 @@
                         <!--回复区域 begin-->
                         <div class="comment-show">
                             <#--<div class="comment-show-con clearfix">-->
-                                <#--<div class="comment-show-con-img pull-left"><img-->
-                                            <#--src="/static/images/header-img-comment_03.png" alt=""></div>-->
-                                <#--<div class="comment-show-con-list pull-left clearfix">-->
-                                    <#--<div class="pl-text clearfix">-->
-                                        <#--<a href="#" class="comment-size-name">张三 : </a>-->
-                                        <#--<span class="my-pl-con">&nbsp;来啊 造作啊!</span>-->
-                                    <#--</div>-->
-                                    <#--<div class="date-dz">-->
-                                        <#--<span class="date-dz-left pull-left comment-time">2017-5-2 11:11:39</span>-->
-                                        <#--<div class="date-dz-right pull-right comment-pl-block">-->
-                                            <#--<a href="javascript:;" class="removeBlock">删除</a>-->
-                                            <#--<a href="javascript:;"-->
-                                               <#--class="date-dz-pl pl-hf hf-con-block pull-left">回复</a>-->
-                                            <#--<span class="pull-left date-dz-line">|</span>-->
-                                            <#--<a href="javascript:;" class="date-dz-z pull-left"><i-->
-                                                        <#--class="date-dz-z-click-red"></i>赞 (<i class="z-num">0</i>)</a>-->
-                                        <#--</div>-->
-                                    <#--</div>-->
-                                    <#--<div class="hf-list-con"></div>-->
-                                <#--</div>-->
+                            <#--<div class="comment-show-con-img pull-left"><img-->
+                            <#--src="/static/images/header-img-comment_03.png" alt=""></div>-->
+                            <#--<div class="comment-show-con-list pull-left clearfix">-->
+                            <#--<div class="pl-text clearfix">-->
+                            <#--<a href="#" class="comment-size-name">张三 : </a>-->
+                            <#--<span class="my-pl-con">&nbsp;来啊 造作啊!</span>-->
+                            <#--</div>-->
+                            <#--<div class="date-dz">-->
+                            <#--<span class="date-dz-left pull-left comment-time">2017-5-2 11:11:39</span>-->
+                            <#--<div class="date-dz-right pull-right comment-pl-block">-->
+                            <#--<a href="javascript:;" class="removeBlock">删除</a>-->
+                            <#--<a href="javascript:;"-->
+                            <#--class="date-dz-pl pl-hf hf-con-block pull-left">回复</a>-->
+                            <#--<span class="pull-left date-dz-line">|</span>-->
+                            <#--<a href="javascript:;" class="date-dz-z pull-left"><i-->
+                            <#--class="date-dz-z-click-red"></i>赞 (<i class="z-num">0</i>)</a>-->
+                            <#--</div>-->
+                            <#--</div>-->
+                            <#--<div class="hf-list-con"></div>-->
+                            <#--</div>-->
                             <#--</div>-->
                         </div>
                         <!--回复区域 end-->
@@ -163,7 +163,7 @@
 </script>
 <!--初始化评论区数据-->
 <script type="text/javascript">
-    function initCommnet(page, limit) {
+    function initRootCommnet(page, limit) {
         var param = {
             page: page,
             limit: limit,
@@ -172,7 +172,7 @@
 
         $.ajax({
             type: "POST",
-            url: "/comment/queryRecipesCommentList",
+            url: "/comment/queryRecipesCommentRootList",
             contentType: "application/json; charset=utf-8",
             async: true,
             data: JSON.stringify(param),
@@ -180,12 +180,40 @@
             success: function (result) {
                 if (result.code == 200) {
                     var data = result.data;
-                    if(data){
-                        for(var i=0, len=data.length; i< len; i++){
+                    if (data) {
+                        for (var i = 0, len = data.length; i < len; i++) {
                             var comment = data[i];
                             //动态创建评论模块
                             var oHtml = '<div class="comment-show-con clearfix"><div class="comment-show-con-img pull-left"><img src="/static/images/header-img-comment_03.png" alt=""></div><div class="comment-show-con-list pull-left clearfix"><div class="pl-text clearfix"><a href="#" class="comment-size-name">' + comment.login_name + ' : </a><span class="my-pl-con">&nbsp;' + comment.reply_content + '</span></div><div class="date-dz"><span class="date-dz-left pull-left comment-time">' + comment.reply_time + '</span><div class="date-dz-right pull-right comment-pl-block"><a href="javascript:;" class="removeBlock">删除</a><a href="javascript:;" class="date-dz-pl pl-hf hf-con-block pull-left">回复</a><span class="pull-left date-dz-line">|</span> <a href="javascript:;" class="date-dz-z pull-left"><i class="date-dz-z-click-red"></i>赞 (<i class="z-num">' + comment.fabulous_num + '</i>)</a></div></div><div class="hf-list-con"></div></div></div>';
                             $('.comment-show').append(oHtml);
+
+                            if(comment.childTotal){
+                                $('.comment-show').find('.hf-list-con').eq(i).css('display', 'block');
+                                var divIndex = i;
+                                if (comment.childTotal > 10) {
+                                    var divId = "div_laypage_reply_" + i;
+                                    var laypageDivHtml = '<div id="' + divId + '"></div>';
+                                    $('.comment-show').find('.hf-list-con').eq(i).after(laypageDivHtml);
+
+                                    layui.laypage.render({
+                                        elem: divId
+                                        , count: comment.childTotal //数据总数，从服务端得到
+                                        , jump: function (obj, first) {
+                                            //obj包含了当前分页的所有参数，比如：
+                                            console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+                                            console.log(obj.limit); //得到每页显示的条数
+
+                                            //首次不执行
+                                            if (!first) {
+                                                //do something
+                                            }
+                                            queryCommnetReply(obj.curr, obj.limit, comment.id, divIndex);
+                                        }
+                                    });
+                                }else{
+                                    queryCommnetReply(1, 10, comment.id, divIndex);
+                                }
+                            }
                         }
                     }
                 } else {
@@ -198,6 +226,52 @@
             },
             error: function (msg) {
                 layer.alert("获取留言板数据失败: " + msg.responseText, {
+                    icon: 5,
+                    btnAlign: 'c', //按钮居中
+                    title: "提示"
+                });
+            }
+        });
+    }
+</script>
+<!--获取评论回复区分页数据-->
+<script type="text/javascript">
+    function queryCommnetReply(page, limit, rootCommentId, index) {
+        var param = {
+            page: page,
+            limit: limit,
+            rootCommentId: rootCommentId
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "/comment/queryRecipesCommentChildList",
+            contentType: "application/json; charset=utf-8",
+            async: true,
+            data: JSON.stringify(param),
+            dataType: "json",
+            success: function (result) {
+                if (result.code == 200) {
+                    var data = result.data;
+                    $('.comment-show').find('.hf-list-con').eq(index).empty();
+                    if (data) {
+                        for (var i = 0, len = data.length; i < len; i++) {
+                            var reply = data[i];
+                            var oAt = '回复<a href="#" class="atName">@' + reply.replyLoginName + '</a> : ' + reply.reply_content;
+                            var rHtml = '<div class="all-pl-con"><div class="pl-text hfpl-text clearfix"><a href="#" class="comment-size-name">' + reply.loginName + ' : </a><span class="my-pl-con">' + oAt + '</span></div><div class="date-dz"> <span class="date-dz-left pull-left comment-time">' + reply.reply_time + '</span> <div class="date-dz-right pull-right comment-pl-block"> <a href="javascript:;" class="removeBlock">删除</a> <a href="javascript:;" class="date-dz-pl pl-hf hf-con-block pull-left">回复</a> <span class="pull-left date-dz-line">|</span> <a href="javascript:;" class="date-dz-z pull-left"><i class="date-dz-z-click-red"></i>赞 (<i class="z-num">' + reply.fabulous_num + '</i>)</a> </div> </div></div>';
+                            $('.comment-show').find('.hf-list-con').eq(index).append(rHtml);
+                        }
+                    }
+                } else {
+                    layer.alert("获取评论回复数据失败，" + result.msg, {
+                        icon: 5,
+                        btnAlign: 'c', //按钮居中
+                        title: "提示"
+                    });
+                }
+            },
+            error: function (msg) {
+                layer.alert("获取评论回复板数据失败: " + msg.responseText, {
                     icon: 5,
                     btnAlign: 'c', //按钮居中
                     title: "提示"
@@ -427,7 +501,7 @@
                                 //do something
                             }
 
-                            initCommnet(obj.curr, obj.limit);
+                            initRootCommnet(obj.curr, obj.limit);
                         }
                     });
                 } else {

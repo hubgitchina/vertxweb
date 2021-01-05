@@ -1,7 +1,9 @@
 package com.demo.service.impl;
 
+import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Component;
 import com.alibaba.fastjson.JSONObject;
 import com.demo.service.BaseAsyncService;
 import com.demo.service.CommentRecipesAsyncService;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
 import io.vertx.core.AsyncResult;
@@ -83,13 +86,142 @@ public class CommentRecipesAsyncServiceImpl
 	}
 
 	@Override
-	public void queryRecipesCommentList(int pageNo, int pageSize, String recipesId,
+	public void queryRecipesCommentRootList(int pageNo, int pageSize, String recipesId,
 			Handler<AsyncResult<List<JSONObject>>> resultHandler) {
 
 		String sql = "select c.*, u.login_name from recipes_comment c left join user u on u.id = c.reply_user_id where c.is_del = 0 and c.reply_status = 0 and c.root_comment_id = '0' order by c.create_date asc limit ?,?";
 
 		// 构造参数
 		JsonArray params = new JsonArray();
+		params.add((pageNo - 1) * pageSize);
+		params.add(pageSize);
+
+		// 执行查询
+		jdbcClient.queryWithParams(sql, params, res -> {
+			if (res.succeeded()) {
+				// 获取到查询的结果，Vert.x对ResultSet进行了封装
+				ResultSet resultSet = res.result();
+				// 把ResultSet转为List<JsonObject>形式
+				List<JsonObject> rows = resultSet.getRows();
+				List<JSONObject> list = Lists.newArrayListWithCapacity(rows.size());
+
+				List<String> commentIdList = Lists.newArrayListWithCapacity(rows.size());
+				for (JsonObject jsonObject : rows) {
+					JSONObject fastObject = jsonObject.mapTo(JSONObject.class);
+
+					DateTime replyTime = new DateTime(fastObject.getString("reply_time"));
+					fastObject.put("reply_time", replyTime.toString("yyyy-MM-dd HH:mm:ss"));
+
+					list.add(fastObject);
+
+					commentIdList.add(fastObject.getString("id"));
+				}
+
+				this.getRecipesCommentChildTotal(commentIdList, countRes->{
+                    if (countRes.succeeded()) {
+                        List<JSONObject> countList = countRes.result();
+                        if (CollectionUtils.isNotEmpty(countList)) {
+                            List<String> rootCommentIdList = Lists.newArrayListWithCapacity(countList.size());
+                            for (JSONObject jsonObject : list) {
+                                String commentId = jsonObject.getString("id");
+
+                                for (JSONObject childJson : countList) {
+                                    String rootCommentId = childJson.getString("root_comment_id");
+                                    int count = childJson.getIntValue("count(*)");
+                                    if(count > 0){
+                                        rootCommentIdList.add(rootCommentId);
+                                    }
+                                    if (commentId.equals(rootCommentId)) {
+                                        jsonObject.put("childTotal", count);
+                                        continue;
+                                    }
+                                }
+                            }
+
+							Future.succeededFuture(list).onComplete(resultHandler);
+
+//                            this.queryRecipesCommentChildList(pageNo, pageSize, rootCommentIdList, result -> {
+//                                if (result.succeeded()) {
+//                                    List<JSONObject> childList = result.result();
+//                                    List<JSONObject> childReplyList;
+//                                    if (CollectionUtils.isNotEmpty(childList)) {
+//                                        for (JSONObject jsonObject : list) {
+//                                            String commentId = jsonObject.getString("id");
+//
+//                                            childReplyList = Lists.newArrayList();
+//                                            for (JSONObject childJson : childList) {
+//                                                String rootCommentId = childJson.getString("root_comment_id");
+//                                                if (commentId.equals(rootCommentId)) {
+//                                                    childReplyList.add(childJson);
+//                                                }
+//                                            }
+//                                            jsonObject.put("childReply", childReplyList);
+//                                        }
+//                                    }
+//                                    Future.succeededFuture(list).onComplete(resultHandler);
+//                                } else {
+//                                    logger.error("查询评论回复失败：{}", result.cause().getMessage());
+//                                    resultHandler.handle(Future.failedFuture(result.cause()));
+//                                }
+//                            });
+                        }
+                    } else {
+                        logger.error("查询评论回复总数失败：{}", countRes.cause().getMessage());
+                        resultHandler.handle(Future.failedFuture(countRes.cause()));
+                    }
+                });
+			} else {
+				logger.error("查询评论失败：{}", res.cause().getMessage());
+				resultHandler.handle(Future.failedFuture(res.cause()));
+			}
+		});
+	}
+
+	@Override
+	public void getRecipesCommentChildTotal(List<String> commentIdList,
+			Handler<AsyncResult<List<JSONObject>>> resultHandler) {
+
+		String[] inSql = new String[commentIdList.size()];
+		Arrays.fill(inSql, "?");
+
+		String countSql = "select root_comment_id, count(*) from recipes_comment where is_del = 0 and reply_status = 0"
+				+ " and root_comment_id in (" + Joiner.on(",").join(inSql)
+				+ ") group by root_comment_id";
+
+        // 构造参数
+        JsonArray params = new JsonArray(commentIdList);
+
+		// 执行查询
+		jdbcClient.queryWithParams(countSql, params, countRes -> {
+			if (countRes.succeeded()) {
+				// 把ResultSet转为List<JsonObject>形式
+				List<JsonObject> countResult = countRes.result().getRows();
+				List<JSONObject> list = Lists.newArrayListWithCapacity(countResult.size());
+
+				for (JsonObject jsonObject : countResult) {
+					JSONObject fastObject = jsonObject.mapTo(JSONObject.class);
+
+					list.add(fastObject);
+				}
+
+				Future.succeededFuture(list).onComplete(resultHandler);
+			} else {
+				logger.error("查询失败：{}", countRes.cause().getMessage());
+				resultHandler.handle(Future.failedFuture(countRes.cause()));
+			}
+		});
+	}
+
+	@Override
+	public void queryRecipesCommentChildList(int pageNo, int pageSize, String commentId,
+			Handler<AsyncResult<List<JSONObject>>> resultHandler) {
+
+		String sql = "select c.*, u.login_name as loginName, ru.login_name as replyLoginName from recipes_comment c left join user u on u.id = c.reply_user_id left join user ru on ru.id = c.reply_comment_user_id where c.is_del = 0 and c.reply_status = 0"
+				+ " and c.root_comment_id = ? order by c.root_comment_id, c.create_date asc limit ?,?";
+
+		// 构造参数
+		JsonArray params = new JsonArray();
+		params.add(commentId);
 		params.add((pageNo - 1) * pageSize);
 		params.add(pageSize);
 
@@ -118,5 +250,4 @@ public class CommentRecipesAsyncServiceImpl
 			}
 		});
 	}
-
 }
