@@ -3,6 +3,7 @@ package com.demo.controller;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,47 +50,70 @@ public class CommentRecipesController {
 
 			String recipesId = params.getString("recipesId");
 			String replyContent = params.getString("replyContent");
-			String rootCommentId = "0";
-			if (params.containsKey("rootCommentId")) {
-				rootCommentId = params.getString("rootCommentId");
-			}
+			String rootCommentId = params.getString("rootCommentId");;
 
-			String replyCommentId = "";
-			String replyCommentUserId = "";
-			if (params.containsKey("replyCommentId")) {
-				replyCommentId = params.getString("replyCommentId");
-				replyCommentUserId = params.getString("replyCommentUserId");
-			}
+			String replyCommentId = params.getString("replyCommentId");
+			String replyCommentUserId = params.getString("replyCommentUserId");
 
-			JsonArray orderJson = new JsonArray();
-			String commentId = JdbcCommonUtil.setCommonInfo(orderJson, userId, null);
-			orderJson.add(recipesId);
-			orderJson.add(rootCommentId);
+			int type = params.getIntValue("type");
 
-			orderJson.add(replyCommentId);
-			orderJson.add(replyCommentUserId);
+			JsonArray commentJson = new JsonArray();
+			String commentId = JdbcCommonUtil.setCommonInfo(commentJson, userId, null);
+			commentJson.add(recipesId);
+			commentJson.add(rootCommentId);
 
-			orderJson.add(userId);
-			orderJson.add(replyContent);
+			commentJson.add(replyCommentId);
+			commentJson.add(replyCommentUserId);
 
-			orderJson.add(0);
+			commentJson.add(userId);
+			commentJson.add(replyContent);
 
-			String nowTimeStr = orderJson.getString(1);
-			orderJson.add(nowTimeStr);
-			orderJson.add(0);
+			commentJson.add(0);
 
-			commentRecipesAsyncService.saveRecipesComment(orderJson, result -> {
+			String nowTimeStr = commentJson.getString(1);
+			commentJson.add(nowTimeStr);
+			commentJson.add(0);
+
+			commentRecipesAsyncService.saveRecipesComment(commentJson, result -> {
 				if (result.succeeded()) {
-					result.result();
+					int count = result.result();
+					if(count > 0){
+						if(type == 1){
+							commentRecipesAsyncService.getRecipesCommentTotal(recipesId,totalRes->{
+								if(totalRes.succeeded()){
+									int total = totalRes.result();
+									Map<String, Object> map = Maps.newHashMapWithExpectedSize(5);
+									map.put("total", total);
+									vertxRequest.buildVertxRespone().responeSuccess(map);
+								}else{
+									vertxRequest.buildVertxRespone().responseFail(totalRes.cause().getMessage());
+								}
+							});
+						}else{
+							List<String> commentIdList = Lists.newArrayListWithCapacity(1);
+							commentIdList.add(rootCommentId);
+							commentRecipesAsyncService.getRecipesCommentChildTotal(commentIdList,totalRes->{
+								if(totalRes.succeeded()){
+									List<JSONObject> totalList = totalRes.result();
+									int total = totalList.get(0).getIntValue("count(*)");
+									Map<String, Object> map = Maps.newHashMapWithExpectedSize(5);
+									map.put("total", total);
 
-					Map<String, Object> map = Maps.newHashMapWithExpectedSize(5);
-					map.put("commentId", commentId);
-					map.put("commentUserId", userId);
-					map.put("commentUserName", loginName);
-					map.put("commentTime", nowTimeStr);
-					map.put("fabulousNum", 0);
+//									map.put("commentId", commentId);
+//									map.put("commentUserId", userId);
+//									map.put("commentUserName", loginName);
+//									map.put("commentTime", nowTimeStr);
+//									map.put("fabulousNum", 0);
 
-					vertxRequest.buildVertxRespone().responeSuccess(map);
+									vertxRequest.buildVertxRespone().responeSuccess(map);
+								}else{
+									vertxRequest.buildVertxRespone().responseFail(totalRes.cause().getMessage());
+								}
+							});
+						}
+					}else{
+						vertxRequest.buildVertxRespone().responseFail("保存失败");
+					}
 				} else {
 					vertxRequest.buildVertxRespone().responseFail(result.cause().getMessage());
 				}
