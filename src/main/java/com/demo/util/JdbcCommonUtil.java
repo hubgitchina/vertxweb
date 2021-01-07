@@ -39,4 +39,12 @@ public class JdbcCommonUtil {
 
 		return id;
 	}
+
+	public static void setUpdateCommonInfo(JsonArray jsonArray, String userId) {
+
+		String now = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
+
+		jsonArray.add(now);
+		jsonArray.add(userId);
+	}
 }

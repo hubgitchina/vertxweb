@@ -202,7 +202,9 @@
                             oHtml += '<div class="date-dz">';
                             oHtml += '<span class="date-dz-left pull-left comment-time">' + comment.reply_time + '</span>';
                             oHtml += '<div class="date-dz-right pull-right comment-pl-block">';
-                            oHtml += '<a href="javascript:;" class="removeBlock">删除</a>';
+                            if (comment.canDel) {
+                                oHtml += '<a href="javascript:;" class="removeBlock">删除</a>';
+                            }
                             oHtml += '<a href="javascript:;" class="date-dz-pl pl-hf hf-con-block pull-left">回复</a>';
                             oHtml += '<span class="pull-left date-dz-line">|</span>';
                             oHtml += '<a href="javascript:;" class="date-dz-z pull-left"><i class="date-dz-z-click-red"></i>赞 (<i class="z-num">' + comment.fabulous_num + '</i>)</a>';
@@ -225,10 +227,6 @@
                                         elem: divId
                                         , count: comment.childTotal //数据总数，从服务端得到
                                         , jump: function (obj, first) {
-                                            //obj包含了当前分页的所有参数，比如：
-                                            console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
-                                            console.log(obj.limit); //得到每页显示的条数
-
                                             //首次不执行
                                             if (!first) {
                                                 //do something
@@ -297,7 +295,9 @@
                             rHtml += '<div class="date-dz">';
                             rHtml += '<span class="date-dz-left pull-left comment-time">' + reply.reply_time + '</span>';
                             rHtml += '<div class="date-dz-right pull-right comment-pl-block">';
-                            rHtml += '<a href="javascript:;" class="removeBlock">删除</a>';
+                            if (reply.canDel) {
+                                rHtml += '<a href="javascript:;" class="removeBlock">删除</a>';
+                            }
                             rHtml += '<a href="javascript:;" class="date-dz-pl pl-hf hf-con-block pull-left">回复</a>';
                             rHtml += '<span class="pull-left date-dz-line">|</span>';
                             rHtml += '<a href="javascript:;" class="date-dz-z pull-left"><i class="date-dz-z-click-red"></i>赞 (<i class="z-num">' + reply.fabulous_num + '</i>)</a>';
@@ -335,6 +335,8 @@
             type: type
         }
 
+        var msgIndex = layer.msg('系统处理中，请等待...', {shade: [0.8, '#393D49'], icon: 16, time: false});
+
         $.ajax({
             type: "POST",
             url: "/comment/saveRecipesComment",
@@ -343,6 +345,8 @@
             data: JSON.stringify(param),
             dataType: "json",
             success: function (result) {
+                layer.close(msgIndex);
+
                 if (result.code == 200) {
                     var total = result.data;
 
@@ -373,6 +377,8 @@
                             queryCommnetReply(1, 10, rootCommentId, divIndex);
                         }
                     }
+
+                    layer.msg("评论成功");
                 } else {
                     layer.alert("评论失败，" + result.msg, {
                         icon: 5,
@@ -382,6 +388,8 @@
                 }
             },
             error: function (msg) {
+                layer.close(msgIndex);
+
                 layer.alert("评论失败: " + msg.responseText, {
                     icon: 5,
                     btnAlign: 'c', //按钮居中
@@ -399,8 +407,6 @@
         if (oSize.replace(/(^\s*)|(\s*$)/g, "") == '') {
             return false;
         }
-
-        console.log(oSize);
 
         saveCommentReply(oSize, '0', '', '', 1, 'div_laypage');
 
@@ -505,7 +511,7 @@
         var now = year + '-' + month + "-" + date + " " + h + ':' + m + ":" + s;
         //获取输入内容
         var oHfVal = $(this).siblings('.flex-text-wrap').find('.hf-input').val();
-        console.log(oHfVal);
+
         var oHfName = $(this).parents('.hf-con').parents('.date-dz').siblings('.pl-text').find('.comment-size-name').html();
         var oAllVal = '回复@' + oHfName;
 
@@ -552,32 +558,167 @@
 <!--删除评论块-->
 <script type="text/javascript">
     $('.commentAll').on('click', '.removeBlock', function () {
-        var oT = $(this).parents('.date-dz-right').parents('.date-dz').parents('.all-pl-con');
-        if (oT.siblings('.all-pl-con').length >= 1) {
-            oT.remove();
-        } else {
-            $(this).parents('.date-dz-right').parents('.date-dz').parents('.all-pl-con').parents('.hf-list-con').css('display', 'none')
-            oT.remove();
-        }
-        $(this).parents('.date-dz-right').parents('.date-dz').parents('.comment-show-con-list').parents('.comment-show-con').remove();
+        // var oT = $(this).parents('.date-dz-right').parents('.date-dz').parents('.all-pl-con');
+        // if (oT.siblings('.all-pl-con').length >= 1) {
+        //     oT.remove();
+        // } else {
+        //     $(this).parents('.date-dz-right').parents('.date-dz').parents('.all-pl-con').parents('.hf-list-con').css('display', 'none')
+        //     oT.remove();
+        // }
+        // $(this).parents('.date-dz-right').parents('.date-dz').parents('.comment-show-con-list').parents('.comment-show-con').remove();
 
+        var rootCommentId = $(this).parents('.date-dz-right').parents('.date-dz').siblings('.pl-text').find('#rootCommentId').val();
+        var commentId = $(this).parents('.date-dz-right').parents('.date-dz').siblings('.pl-text').find('#commentId').val();
+        var divId = $(this).parents('.date-dz-right').parents('.date-dz').siblings('.pl-text').find('#divId').val();
+
+        var oT = $(this).parents('.date-dz-right').parents('.date-dz').parents('.all-pl-con');
+        var type;
+        if (oT.siblings('.all-pl-con').length >= 1) {
+            type = 2;
+        } else {
+            type = 1;
+            divId = 'div_laypage';
+        }
+        var param = {
+            recipesId: recipesId,
+            commentId: commentId,
+            rootCommentId: rootCommentId,
+            type: type
+        }
+
+        var msgIndex = layer.msg('系统处理中，请等待...', {shade: [0.8, '#393D49'], icon: 16, time: false});
+
+        $.ajax({
+            type: "POST",
+            url: "/comment/deleteRecipesComment",
+            contentType: "application/json; charset=utf-8",
+            async: true,
+            data: JSON.stringify(param),
+            dataType: "json",
+            success: function (result) {
+                layer.close(msgIndex);
+
+                if (result.code == 200) {
+                    var total = result.data;
+
+                    $("#" + divId).empty();
+
+                    //根据类型不同，清空对应回复框内容
+                    if (type == 1) {
+                        layui.laypage.render({
+                            elem: divId
+                            , count: total //数据总数，从服务端得到
+                            , jump: function (obj, first) {
+                                initRootCommnet(obj.curr, obj.limit);
+                            }
+                        });
+                    } else {
+                        var divIndex = divId.substr(divId.lastIndexOf("_") + 1);
+                        if (total > 10) {
+                            layui.laypage.render({
+                                elem: divId
+                                , count: total //数据总数，从服务端得到
+                                , jump: function (obj, first) {
+                                    queryCommnetReply(obj.curr, obj.limit, rootCommentId, divIndex);
+                                }
+                            });
+                        } else {
+                            queryCommnetReply(1, 10, rootCommentId, divIndex);
+                        }
+                    }
+
+                    layer.msg("删除成功");
+                } else {
+                    layer.alert("删除评论失败，" + result.msg, {
+                        icon: 5,
+                        btnAlign: 'c', //按钮居中
+                        title: "提示"
+                    });
+                }
+            },
+            error: function (msg) {
+                layer.close(msgIndex);
+
+                layer.alert("删除评论失败: " + msg.responseText, {
+                    icon: 5,
+                    btnAlign: 'c', //按钮居中
+                    title: "提示"
+                });
+            }
+        });
     })
 </script>
 <!--点赞-->
 <script type="text/javascript">
-    $('.comment-show').on('click', '.date-dz-z', function () {
-        var zNum = $(this).find('.z-num').html();
+    $('.comment-show').on('click', '.date-dz-z', function (e) {
+        // var zNum = $(this).find('.z-num').html();
+        // if ($(this).is('.date-dz-z-click')) {
+        //     zNum--;
+        //     $(this).removeClass('date-dz-z-click red');
+        //     $(this).find('.z-num').html(zNum);
+        //     $(this).find('.date-dz-z-click-red').removeClass('red');
+        // } else {
+        //     zNum++;
+        //     $(this).addClass('date-dz-z-click');
+        //     $(this).find('.z-num').html(zNum);
+        //     $(this).find('.date-dz-z-click-red').addClass('red');
+        // }
+
+        var type;
         if ($(this).is('.date-dz-z-click')) {
-            zNum--;
-            $(this).removeClass('date-dz-z-click red');
-            $(this).find('.z-num').html(zNum);
-            $(this).find('.date-dz-z-click-red').removeClass('red');
+            type = 0;
         } else {
-            zNum++;
-            $(this).addClass('date-dz-z-click');
-            $(this).find('.z-num').html(zNum);
-            $(this).find('.date-dz-z-click-red').addClass('red');
+            type = 1;
         }
+
+        var commentId = $(this).parents('.date-dz-right').parents('.date-dz').siblings('.pl-text').find('#commentId').val();
+
+        var param = {
+            commentId: commentId,
+            type: type
+        };
+
+        var msgIndex = layer.msg('系统处理中，请等待...', {shade: [0.8, '#393D49'], icon: 16, time: false});
+
+        $.ajax({
+            type: "POST",
+            url: "/comment/clickFabulous",
+            contentType: "application/json; charset=utf-8",
+            async: true,
+            data: JSON.stringify(param),
+            dataType: "json",
+            success: function (result) {
+                layer.close(msgIndex);
+
+                if (result.code == 200) {
+                    var zNum = result.data;
+                    if(type){
+                        $(e.currentTarget).addClass('date-dz-z-click');
+                        $(e.currentTarget).find('.z-num').html(zNum);
+                        $(e.currentTarget).find('.date-dz-z-click-red').addClass('red');
+                    }else{
+                        $(e.currentTarget).removeClass('date-dz-z-click red');
+                        $(e.currentTarget).find('.z-num').html(zNum);
+                        $(e.currentTarget).find('.date-dz-z-click-red').removeClass('red');
+                    }
+                } else {
+                    layer.alert("操作失败，" + result.msg, {
+                        icon: 5,
+                        btnAlign: 'c', //按钮居中
+                        title: "提示"
+                    });
+                }
+            },
+            error: function (msg) {
+                layer.close(msgIndex);
+
+                layer.alert("操作失败: " + msg.responseText, {
+                    icon: 5,
+                    btnAlign: 'c', //按钮居中
+                    title: "提示"
+                });
+            }
+        });
     })
 </script>
 
@@ -611,15 +752,10 @@
                         elem: 'div_laypage'
                         , count: data //数据总数，从服务端得到
                         , jump: function (obj, first) {
-                            //obj包含了当前分页的所有参数，比如：
-                            console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
-                            console.log(obj.limit); //得到每页显示的条数
-
                             //首次不执行
                             if (!first) {
                                 //do something
                             }
-
                             initRootCommnet(obj.curr, obj.limit);
                         }
                     });

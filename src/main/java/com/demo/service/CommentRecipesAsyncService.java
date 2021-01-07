@@ -29,4 +29,10 @@ public interface CommentRecipesAsyncService {
 
 	void queryRecipesCommentChildList(int pageNo, int pageSize, String commentId,
 			Handler<AsyncResult<List<JSONObject>>> resultHandler);
+
+	void deleteRecipesComment(JsonArray jsonArray, Handler<AsyncResult<Integer>> resultHandler);
+
+	void clickFabulous(JsonArray jsonArray, int type, Handler<AsyncResult<Integer>> resultHandler);
+
+	void getFabulous(String commentId, Handler<AsyncResult<Integer>> resultHandler);
 }

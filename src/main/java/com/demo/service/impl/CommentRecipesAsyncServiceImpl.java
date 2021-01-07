@@ -109,77 +109,81 @@ public class CommentRecipesAsyncServiceImpl
 				// 把ResultSet转为List<JsonObject>形式
 				List<JsonObject> rows = resultSet.getRows();
 				List<JSONObject> list = Lists.newArrayListWithCapacity(rows.size());
+				if (CollectionUtils.isNotEmpty(rows)) {
+					List<String> commentIdList = Lists.newArrayListWithCapacity(rows.size());
+					for (JsonObject jsonObject : rows) {
+						JSONObject fastObject = jsonObject.mapTo(JSONObject.class);
 
-				List<String> commentIdList = Lists.newArrayListWithCapacity(rows.size());
-				for (JsonObject jsonObject : rows) {
-					JSONObject fastObject = jsonObject.mapTo(JSONObject.class);
+						DateTime replyTime = new DateTime(fastObject.getString("reply_time"));
+						fastObject.put("reply_time", replyTime.toString("yyyy-MM-dd HH:mm:ss"));
 
-					DateTime replyTime = new DateTime(fastObject.getString("reply_time"));
-					fastObject.put("reply_time", replyTime.toString("yyyy-MM-dd HH:mm:ss"));
+						list.add(fastObject);
 
-					list.add(fastObject);
+						commentIdList.add(fastObject.getString("id"));
+					}
 
-					commentIdList.add(fastObject.getString("id"));
-				}
+					this.getRecipesCommentChildTotal(commentIdList, countRes -> {
+						if (countRes.succeeded()) {
+							List<JSONObject> countList = countRes.result();
+							if (CollectionUtils.isNotEmpty(countList)) {
+								List<String> rootCommentIdList = Lists
+										.newArrayListWithCapacity(countList.size());
+								for (JSONObject jsonObject : list) {
+									String commentId = jsonObject.getString("id");
 
-				this.getRecipesCommentChildTotal(commentIdList, countRes -> {
-					if (countRes.succeeded()) {
-						List<JSONObject> countList = countRes.result();
-						if (CollectionUtils.isNotEmpty(countList)) {
-							List<String> rootCommentIdList = Lists
-									.newArrayListWithCapacity(countList.size());
-							for (JSONObject jsonObject : list) {
-								String commentId = jsonObject.getString("id");
-
-								for (JSONObject childJson : countList) {
-									String rootCommentId = childJson.getString("root_comment_id");
-									int count = childJson.getIntValue("count(*)");
-									if (count > 0) {
-										rootCommentIdList.add(rootCommentId);
-									}
-									if (commentId.equals(rootCommentId)) {
-										jsonObject.put("childTotal", count);
-										continue;
+									for (JSONObject childJson : countList) {
+										String rootCommentId = childJson
+												.getString("root_comment_id");
+										int count = childJson.getIntValue("count(*)");
+										if (count > 0) {
+											rootCommentIdList.add(rootCommentId);
+										}
+										if (commentId.equals(rootCommentId)) {
+											jsonObject.put("childTotal", count);
+											continue;
+										}
 									}
 								}
-							}
 
-							// this.queryRecipesCommentChildList(pageNo, pageSize,
-							// rootCommentIdList, result -> {
-							// if (result.succeeded()) {
-							// List<JSONObject> childList = result.result();
-							// List<JSONObject> childReplyList;
-							// if (CollectionUtils.isNotEmpty(childList)) {
-							// for (JSONObject jsonObject : list) {
-							// String commentId = jsonObject.getString("id");
-							//
-							// childReplyList = Lists.newArrayList();
-							// for (JSONObject childJson : childList) {
-							// String rootCommentId = childJson.getString("root_comment_id");
-							// if (commentId.equals(rootCommentId)) {
-							// childReplyList.add(childJson);
-							// }
-							// }
-							// jsonObject.put("childReply", childReplyList);
-							// }
-							// }
-							// Future.succeededFuture(list).onComplete(resultHandler);
-							// } else {
-							// logger.error("查询评论回复失败：{}", result.cause().getMessage());
-							// resultHandler.handle(Future.failedFuture(result.cause()));
-							// }
-							// });
-						}else{
-							for (JSONObject jsonObject : list) {
-								jsonObject.put("childTotal", 0);
+								// this.queryRecipesCommentChildList(pageNo, pageSize,
+								// rootCommentIdList, result -> {
+								// if (result.succeeded()) {
+								// List<JSONObject> childList = result.result();
+								// List<JSONObject> childReplyList;
+								// if (CollectionUtils.isNotEmpty(childList)) {
+								// for (JSONObject jsonObject : list) {
+								// String commentId = jsonObject.getString("id");
+								//
+								// childReplyList = Lists.newArrayList();
+								// for (JSONObject childJson : childList) {
+								// String rootCommentId = childJson.getString("root_comment_id");
+								// if (commentId.equals(rootCommentId)) {
+								// childReplyList.add(childJson);
+								// }
+								// }
+								// jsonObject.put("childReply", childReplyList);
+								// }
+								// }
+								// Future.succeededFuture(list).onComplete(resultHandler);
+								// } else {
+								// logger.error("查询评论回复失败：{}", result.cause().getMessage());
+								// resultHandler.handle(Future.failedFuture(result.cause()));
+								// }
+								// });
+							} else {
+								for (JSONObject jsonObject : list) {
+									jsonObject.put("childTotal", 0);
+								}
 							}
+							Future.succeededFuture(list).onComplete(resultHandler);
+						} else {
+							logger.error("查询评论回复总数失败：{}", countRes.cause().getMessage());
+							resultHandler.handle(Future.failedFuture(countRes.cause()));
 						}
-						Future.succeededFuture(list).onComplete(resultHandler);
-					} else {
-						logger.error("查询评论回复总数失败：{}", countRes.cause().getMessage());
-						resultHandler.handle(Future.failedFuture(countRes.cause()));
-					}
-				});
+					});
+				} else {
+					Future.succeededFuture(list).onComplete(resultHandler);
+				}
 			} else {
 				logger.error("查询评论失败：{}", res.cause().getMessage());
 				resultHandler.handle(Future.failedFuture(res.cause()));
@@ -254,6 +258,83 @@ public class CommentRecipesAsyncServiceImpl
 				}
 
 				Future.succeededFuture(list).onComplete(resultHandler);
+			} else {
+				logger.error("查询失败：{}", res.cause().getMessage());
+				resultHandler.handle(Future.failedFuture(res.cause()));
+			}
+		});
+	}
+
+	@Override
+	public void deleteRecipesComment(JsonArray jsonArray,
+			Handler<AsyncResult<Integer>> resultHandler) {
+
+		String deleteSql = "update recipes_comment set is_del = 1, update_date = ?, update_by = ? where id = ?";
+
+		jdbcClient.updateWithParams(deleteSql, jsonArray, res -> {
+			if (res.succeeded()) {
+				UpdateResult result = res.result();
+				int count = result.getUpdated();
+
+				logger.info("菜谱评论删除成功【{}】条，ID为【{}】", count, jsonArray.getString(2));
+
+				Future.succeededFuture(count).onComplete(resultHandler);
+			} else {
+				logger.error("菜谱评论删除失败：{}", res.cause().getMessage());
+				resultHandler.handle(Future.failedFuture(res.cause()));
+			}
+		});
+	}
+
+	@Override
+	public void clickFabulous(JsonArray jsonArray, int type,
+			Handler<AsyncResult<Integer>> resultHandler) {
+
+		String updateSql;
+		if (type == 1) {
+			updateSql = "update recipes_comment set fabulous_num = fabulous_num + 1, update_date = ?, update_by = ? where id = ?";
+		} else {
+			updateSql = "update recipes_comment set fabulous_num = fabulous_num - 1, update_date = ?, update_by = ? where id = ?";
+		}
+
+		jdbcClient.updateWithParams(updateSql, jsonArray, res -> {
+			if (res.succeeded()) {
+				UpdateResult result = res.result();
+				int count = result.getUpdated();
+
+				logger.info("菜谱评论点赞数更新成功【{}】条，ID为【{}】", count, jsonArray.getString(2));
+
+				Future.succeededFuture(count).onComplete(resultHandler);
+			} else {
+				logger.error("菜谱评论点赞数更新失败：{}", res.cause().getMessage());
+				resultHandler.handle(Future.failedFuture(res.cause()));
+			}
+		});
+	}
+
+	@Override
+	public void getFabulous(String commentId, Handler<AsyncResult<Integer>> resultHandler) {
+
+		String fabulousSql = "select fabulous_num from recipes_comment where id = ?";
+
+		// 构造参数
+		JsonArray params = new JsonArray();
+		params.add(commentId);
+
+		// 执行查询
+		jdbcClient.queryWithParams(fabulousSql, params, res -> {
+			if (res.succeeded()) {
+				ResultSet resultSet = res.result();
+				// 把ResultSet转为List<JsonObject>形式
+				List<JsonObject> rows = resultSet.getRows();
+				int count = 0;
+				if (CollectionUtils.isNotEmpty(rows)) {
+					count = rows.get(0).getInteger("fabulous_num");
+				}
+
+				logger.info("ID为【{}】的评论，点赞数为【{}】", commentId, count);
+
+				Future.succeededFuture(count).onComplete(resultHandler);
 			} else {
 				logger.error("查询失败：{}", res.cause().getMessage());
 				resultHandler.handle(Future.failedFuture(res.cause()));
