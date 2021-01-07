@@ -361,13 +361,17 @@
                         });
                     } else {
                         var divIndex = divId.substr(divId.lastIndexOf("_") + 1);
-                        layui.laypage.render({
-                            elem: divId
-                            , count: total //数据总数，从服务端得到
-                            , jump: function (obj, first) {
-                                queryCommnetReply(obj.curr, obj.limit, rootCommentId, divIndex);
-                            }
-                        });
+                        if (total > 10) {
+                            layui.laypage.render({
+                                elem: divId
+                                , count: total //数据总数，从服务端得到
+                                , jump: function (obj, first) {
+                                    queryCommnetReply(obj.curr, obj.limit, rootCommentId, divIndex);
+                                }
+                            });
+                        } else {
+                            queryCommnetReply(1, 10, rootCommentId, divIndex);
+                        }
                     }
                 } else {
                     layer.alert("评论失败，" + result.msg, {

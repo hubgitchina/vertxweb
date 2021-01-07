@@ -82,9 +82,7 @@ public class CommentRecipesController {
 							commentRecipesAsyncService.getRecipesCommentTotal(recipesId,totalRes->{
 								if(totalRes.succeeded()){
 									int total = totalRes.result();
-									Map<String, Object> map = Maps.newHashMapWithExpectedSize(5);
-									map.put("total", total);
-									vertxRequest.buildVertxRespone().responeSuccess(map);
+									vertxRequest.buildVertxRespone().responeSuccess(total);
 								}else{
 									vertxRequest.buildVertxRespone().responseFail(totalRes.cause().getMessage());
 								}
@@ -96,16 +94,16 @@ public class CommentRecipesController {
 								if(totalRes.succeeded()){
 									List<JSONObject> totalList = totalRes.result();
 									int total = totalList.get(0).getIntValue("count(*)");
-									Map<String, Object> map = Maps.newHashMapWithExpectedSize(5);
-									map.put("total", total);
 
+//									Map<String, Object> map = Maps.newHashMapWithExpectedSize(5);
 //									map.put("commentId", commentId);
 //									map.put("commentUserId", userId);
 //									map.put("commentUserName", loginName);
 //									map.put("commentTime", nowTimeStr);
 //									map.put("fabulousNum", 0);
+//									vertxRequest.buildVertxRespone().responeSuccess(map);
 
-									vertxRequest.buildVertxRespone().responeSuccess(map);
+									vertxRequest.buildVertxRespone().responeSuccess(total);
 								}else{
 									vertxRequest.buildVertxRespone().responseFail(totalRes.cause().getMessage());
 								}

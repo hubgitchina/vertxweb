@@ -144,8 +144,6 @@ public class CommentRecipesAsyncServiceImpl
 								}
 							}
 
-							Future.succeededFuture(list).onComplete(resultHandler);
-
 							// this.queryRecipesCommentChildList(pageNo, pageSize,
 							// rootCommentIdList, result -> {
 							// if (result.succeeded()) {
@@ -171,7 +169,12 @@ public class CommentRecipesAsyncServiceImpl
 							// resultHandler.handle(Future.failedFuture(result.cause()));
 							// }
 							// });
+						}else{
+							for (JSONObject jsonObject : list) {
+								jsonObject.put("childTotal", 0);
+							}
 						}
+						Future.succeededFuture(list).onComplete(resultHandler);
 					} else {
 						logger.error("查询评论回复总数失败：{}", countRes.cause().getMessage());
 						resultHandler.handle(Future.failedFuture(countRes.cause()));
