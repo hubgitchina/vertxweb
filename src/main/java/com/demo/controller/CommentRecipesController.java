@@ -13,10 +13,13 @@ import com.demo.annotation.RequestBody;
 import com.demo.annotation.RequestMapping;
 import com.demo.base.ControllerHandler;
 import com.demo.enums.RequestMethod;
+import com.demo.service.CommentFabulousRecordAsyncService;
 import com.demo.service.CommentRecipesAsyncService;
 import com.demo.util.JdbcCommonUtil;
 import com.google.common.collect.Lists;
 
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 
 /**
@@ -34,6 +37,9 @@ public class CommentRecipesController {
 
 	@Autowired
 	private CommentRecipesAsyncService commentRecipesAsyncService;
+
+	@Autowired
+	private CommentFabulousRecordAsyncService fabulousRecordAsyncService;
 
 	@RequestBody
 	@RequestMapping(value = "/saveRecipesComment", method = RequestMethod.POST)
@@ -208,16 +214,47 @@ public class CommentRecipesController {
 							if (CollectionUtils.isNotEmpty(list)) {
 								String userId = vertxRequest.getRoutingContext().user().principal()
 										.getString("userId");
+
+								List<Future> futureList = Lists
+										.newArrayListWithCapacity(list.size());
+
 								for (JSONObject jsonObject : list) {
 									if (userId.equals(jsonObject.getString("reply_user_id"))) {
 										jsonObject.put("canDel", 1);
 									} else {
 										jsonObject.put("canDel", 0);
 									}
-								}
-							}
 
-							vertxRequest.buildVertxRespone().responeSuccess(list);
+									String commnetId = jsonObject.getString("id");
+
+									Future<JSONObject> future = fabulousRecordAsyncService
+											.getLatelyOneFabulousRecordByUserId(commnetId, userId);
+									futureList.add(future);
+								}
+
+								CompositeFuture.all(futureList).onComplete(allRes -> {
+									if (allRes.succeeded()) {
+										List<JSONObject> fabulousList = allRes.result().list();
+										if (CollectionUtils.isNotEmpty(fabulousList)) {
+											for (JSONObject jsonObject : list) {
+												String commnetId = jsonObject.getString("id");
+												for (JSONObject fabulousJson : fabulousList) {
+													if (commnetId.equals(
+															fabulousJson.getString("commentId"))
+															&& 1 == fabulousJson
+																	.getIntValue("type")) {
+														jsonObject.put("isFabulous", 1);
+													}
+												}
+											}
+										}
+										vertxRequest.buildVertxRespone().responeSuccess(list);
+									} else {
+										vertxRequest.buildVertxRespone().responeSuccess(list);
+									}
+								});
+							}
+							// vertxRequest.buildVertxRespone().responeSuccess(list);
 						} else {
 							vertxRequest.buildVertxRespone()
 									.responseFail(result.cause().getMessage());
@@ -239,7 +276,7 @@ public class CommentRecipesController {
 			String recipesId = params.getString("recipesId");
 			String commentId = params.getString("commentId");
 			String rootCommentId = params.getString("rootCommentId");
-			;
+
 			int type = params.getIntValue("type");
 
 			JsonArray commentJson = new JsonArray();
@@ -300,7 +337,6 @@ public class CommentRecipesController {
 			String userId = vertxRequest.getRoutingContext().user().principal().getString("userId");
 
 			String commentId = params.getString("commentId");
-			;
 			int type = params.getIntValue("type");
 
 			JsonArray commentJson = new JsonArray();
@@ -316,7 +352,28 @@ public class CommentRecipesController {
 						commentRecipesAsyncService.getFabulous(commentId, numRes -> {
 							if (numRes.succeeded()) {
 								int total = numRes.result();
-								vertxRequest.buildVertxRespone().responeSuccess(total);
+
+								JsonArray fabulousRecordJson = new JsonArray();
+								JdbcCommonUtil.setCommonInfo(fabulousRecordJson, userId, null);
+								fabulousRecordJson.add(commentId);
+								fabulousRecordJson.add(userId);
+								fabulousRecordJson.add(type);
+
+								String nowTimeStr = fabulousRecordJson.getString(1);
+								fabulousRecordJson.add(nowTimeStr);
+
+								fabulousRecordJson.add(total);
+
+								fabulousRecordAsyncService.saveCommentFabulousRecord(
+										fabulousRecordJson, recordRes -> {
+											if (recordRes.succeeded()) {
+												vertxRequest.buildVertxRespone()
+														.responeSuccess(total);
+											} else {
+												vertxRequest.buildVertxRespone().responseFail(
+														recordRes.cause().getMessage());
+											}
+										});
 							} else {
 								vertxRequest.buildVertxRespone()
 										.responseFail(numRes.cause().getMessage());

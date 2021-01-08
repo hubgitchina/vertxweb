@@ -300,7 +300,11 @@
                             }
                             rHtml += '<a href="javascript:;" class="date-dz-pl pl-hf hf-con-block pull-left">回复</a>';
                             rHtml += '<span class="pull-left date-dz-line">|</span>';
-                            rHtml += '<a href="javascript:;" class="date-dz-z pull-left"><i class="date-dz-z-click-red"></i>赞 (<i class="z-num">' + reply.fabulous_num + '</i>)</a>';
+                            if(reply.isFabulous){
+                                rHtml += '<a href="javascript:;" class="date-dz-z pull-left date-dz-z-click"><i class="date-dz-z-click-red red"></i>赞 (<i class="z-num">' + reply.fabulous_num + '</i>)</a>';
+                            }else{
+                                rHtml += '<a href="javascript:;" class="date-dz-z pull-left"><i class="date-dz-z-click-red"></i>赞 (<i class="z-num">' + reply.fabulous_num + '</i>)</a>';
+                            }
                             rHtml += '</div></div></div>';
                             $('.comment-show').find('.hf-list-con').eq(index).append(rHtml);
                         }
