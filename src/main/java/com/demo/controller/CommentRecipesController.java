@@ -1,6 +1,8 @@
 package com.demo.controller;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
@@ -16,8 +18,10 @@ import com.demo.enums.RequestMethod;
 import com.demo.service.CommentFabulousRecordAsyncService;
 import com.demo.service.CommentRecipesAsyncService;
 import com.demo.util.JdbcCommonUtil;
+import com.demo.vertx.VertxRequest;
 import com.google.common.collect.Lists;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
@@ -168,28 +172,66 @@ public class CommentRecipesController {
 
 			commentRecipesAsyncService.queryRecipesCommentRootList(page, limit, recipesId,
 					result -> {
-						if (result.succeeded()) {
-							List<JSONObject> list = result.result();
+						this.setCommentResponse(vertxRequest, result);
+					});
+		};
+	}
 
-							if (CollectionUtils.isNotEmpty(list)) {
-								String userId = vertxRequest.getRoutingContext().user().principal()
-										.getString("userId");
-								for (JSONObject jsonObject : list) {
-									if (userId.equals(jsonObject.getString("reply_user_id"))) {
-										jsonObject.put("canDel", 1);
-									} else {
-										jsonObject.put("canDel", 0);
+	private void setCommentResponse(VertxRequest vertxRequest,
+			AsyncResult<List<JSONObject>> result) {
+
+		if (result.succeeded()) {
+			List<JSONObject> list = result.result();
+
+			if (CollectionUtils.isNotEmpty(list)) {
+				String userId = vertxRequest.getRoutingContext().user().principal()
+						.getString("userId");
+
+				List<Future> futureList = Lists.newArrayListWithCapacity(list.size());
+
+				for (JSONObject jsonObject : list) {
+					if (userId.equals(jsonObject.getString("reply_user_id"))) {
+						jsonObject.put("canDel", 1);
+					} else {
+						jsonObject.put("canDel", 0);
+					}
+
+					String commnetId = jsonObject.getString("id");
+
+					Future<JSONObject> future = fabulousRecordAsyncService
+							.getLatelyOneFabulousRecordByUserId(commnetId, userId);
+					futureList.add(future);
+				}
+
+				CompositeFuture.all(futureList).onComplete(allRes -> {
+					if (allRes.succeeded()) {
+						List<JSONObject> fabulousList = allRes.result().list();
+
+						/** 去掉无返回的空数据 */
+						fabulousList.removeIf(Objects::isNull);
+
+						if (CollectionUtils.isNotEmpty(fabulousList)) {
+							for (JSONObject jsonObject : list) {
+								String commnetId = jsonObject.getString("id");
+								for (JSONObject fabulousJson : fabulousList) {
+									if (commnetId.equals(fabulousJson.getString("commentId"))
+											&& 1 == fabulousJson.getIntValue("type")) {
+										jsonObject.put("isFabulous", 1);
 									}
 								}
 							}
-
-							vertxRequest.buildVertxRespone().responeSuccess(list);
-						} else {
-							vertxRequest.buildVertxRespone()
-									.responseFail(result.cause().getMessage());
 						}
-					});
-		};
+						vertxRequest.buildVertxRespone().responeSuccess(list);
+					} else {
+						vertxRequest.buildVertxRespone().responseFail(allRes.cause().getMessage());
+					}
+				});
+			} else {
+				vertxRequest.buildVertxRespone().responeSuccess(Collections.EMPTY_LIST);
+			}
+		} else {
+			vertxRequest.buildVertxRespone().responseFail(result.cause().getMessage());
+		}
 	}
 
 	@RequestBody
@@ -208,57 +250,7 @@ public class CommentRecipesController {
 
 			commentRecipesAsyncService.queryRecipesCommentChildList(page, limit, rootCommentId,
 					result -> {
-						if (result.succeeded()) {
-							List<JSONObject> list = result.result();
-
-							if (CollectionUtils.isNotEmpty(list)) {
-								String userId = vertxRequest.getRoutingContext().user().principal()
-										.getString("userId");
-
-								List<Future> futureList = Lists
-										.newArrayListWithCapacity(list.size());
-
-								for (JSONObject jsonObject : list) {
-									if (userId.equals(jsonObject.getString("reply_user_id"))) {
-										jsonObject.put("canDel", 1);
-									} else {
-										jsonObject.put("canDel", 0);
-									}
-
-									String commnetId = jsonObject.getString("id");
-
-									Future<JSONObject> future = fabulousRecordAsyncService
-											.getLatelyOneFabulousRecordByUserId(commnetId, userId);
-									futureList.add(future);
-								}
-
-								CompositeFuture.all(futureList).onComplete(allRes -> {
-									if (allRes.succeeded()) {
-										List<JSONObject> fabulousList = allRes.result().list();
-										if (CollectionUtils.isNotEmpty(fabulousList)) {
-											for (JSONObject jsonObject : list) {
-												String commnetId = jsonObject.getString("id");
-												for (JSONObject fabulousJson : fabulousList) {
-													if (commnetId.equals(
-															fabulousJson.getString("commentId"))
-															&& 1 == fabulousJson
-																	.getIntValue("type")) {
-														jsonObject.put("isFabulous", 1);
-													}
-												}
-											}
-										}
-										vertxRequest.buildVertxRespone().responeSuccess(list);
-									} else {
-										vertxRequest.buildVertxRespone().responeSuccess(list);
-									}
-								});
-							}
-							// vertxRequest.buildVertxRespone().responeSuccess(list);
-						} else {
-							vertxRequest.buildVertxRespone()
-									.responseFail(result.cause().getMessage());
-						}
+						this.setCommentResponse(vertxRequest, result);
 					});
 		};
 	}

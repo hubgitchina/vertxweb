@@ -207,7 +207,11 @@
                             }
                             oHtml += '<a href="javascript:;" class="date-dz-pl pl-hf hf-con-block pull-left">回复</a>';
                             oHtml += '<span class="pull-left date-dz-line">|</span>';
-                            oHtml += '<a href="javascript:;" class="date-dz-z pull-left"><i class="date-dz-z-click-red"></i>赞 (<i class="z-num">' + comment.fabulous_num + '</i>)</a>';
+                            if(comment.isFabulous){
+                                oHtml += '<a href="javascript:;" class="date-dz-z pull-left date-dz-z-click"><i class="date-dz-z-click-red red"></i>赞 (<i class="z-num">' + comment.fabulous_num + '</i>)</a>';
+                            }else{
+                                oHtml += '<a href="javascript:;" class="date-dz-z pull-left"><i class="date-dz-z-click-red"></i>赞 (<i class="z-num">' + comment.fabulous_num + '</i>)</a>';
+                            }
                             oHtml += '</div></div>';
                             oHtml += '<div class="hf-list-con"></div>';
                             oHtml += '</div></div>';

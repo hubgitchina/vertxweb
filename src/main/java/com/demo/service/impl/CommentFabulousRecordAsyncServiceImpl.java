@@ -3,7 +3,6 @@ package com.demo.service.impl;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +69,12 @@ public class CommentFabulousRecordAsyncServiceImpl
 	public void getLatelyOneFabulousRecordByUserId(String commentId, String userId,
 			Handler<AsyncResult<JSONObject>> resultHandler) {
 
-		String sql = "select max(create_date) as createDate, comment_id as commentId, fabulous_type as type from comment_fabulous_record where comment_id = ? and fabulous_user_id = ?";
+		/** MAX函数只会返回对应最大字段值，而非对应整条记录 */
+		// String sql = "select max(create_date) as createDate, comment_id as commentId,
+		// fabulous_type as type from comment_fabulous_record where comment_id = ? and
+		// fabulous_user_id = ?";
+
+		String sql = "select comment_id as commentId, fabulous_type as type from comment_fabulous_record where comment_id = ? and fabulous_user_id = ? order by create_date desc limit 1";
 
 		// 构造参数
 		JsonArray params = new JsonArray();
@@ -102,7 +106,12 @@ public class CommentFabulousRecordAsyncServiceImpl
 
 		Promise<JSONObject> promise = Promise.promise();
 
-		String sql = "select max(create_date) as createDate, comment_id as commentId, fabulous_type as type from comment_fabulous_record where comment_id = ? and fabulous_user_id = ?";
+		/** MAX函数只会返回对应最大字段值，而非对应整条记录 */
+		// String sql = "select max(create_date) as createDate, comment_id as commentId,
+		// fabulous_type as type from comment_fabulous_record where comment_id = ? and
+		// fabulous_user_id = ?";
+
+		String sql = "select comment_id as commentId, fabulous_type as type from comment_fabulous_record where comment_id = ? and fabulous_user_id = ? order by create_date desc limit 1";
 
 		// 构造参数
 		JsonArray params = new JsonArray();
@@ -119,7 +128,7 @@ public class CommentFabulousRecordAsyncServiceImpl
 					JSONObject fastObject = rows.get(0).mapTo(JSONObject.class);
 					promise.complete(fastObject);
 				} else {
-					promise.complete(new JSONObject());
+					promise.complete();
 				}
 			} else {
 				logger.error("查询失败：{}", res.cause().getMessage());
