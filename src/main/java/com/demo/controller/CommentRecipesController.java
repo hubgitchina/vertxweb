@@ -177,6 +177,34 @@ public class CommentRecipesController {
 		};
 	}
 
+	@RequestBody
+	@RequestMapping(value = "/queryRecipesCommentChildList", method = RequestMethod.POST)
+	public ControllerHandler queryRecipesCommentChildList() {
+
+		return vertxRequest -> {
+			JSONObject params = vertxRequest.getBodyJsonToBean(JSONObject.class);
+			logger.info("参数 {}", params);
+
+			int page = params.getIntValue("page");
+			int limit = params.getIntValue("limit");
+			String rootCommentId = params.getString("rootCommentId");
+
+			logger.info("pageNo为 {} ，pageSize为 {} ，rootCommentId为 {}", page, limit, rootCommentId);
+
+			commentRecipesAsyncService.queryRecipesCommentChildList(page, limit, rootCommentId,
+					result -> {
+						this.setCommentResponse(vertxRequest, result);
+					});
+		};
+	}
+
+	/**
+	 * @Author wangpeng
+	 * @Description 设置返回值公共数据
+	 * @Date 09:28
+	 * @Param
+	 * @return
+	 */
 	private void setCommentResponse(VertxRequest vertxRequest,
 			AsyncResult<List<JSONObject>> result) {
 
@@ -203,28 +231,26 @@ public class CommentRecipesController {
 					futureList.add(future);
 				}
 
-				CompositeFuture.all(futureList).onComplete(allRes -> {
-					if (allRes.succeeded()) {
-						List<JSONObject> fabulousList = allRes.result().list();
+				CompositeFuture.all(futureList).onSuccess(allRes -> {
+					List<JSONObject> fabulousList = allRes.list();
 
-						/** 去掉无返回的空数据 */
-						fabulousList.removeIf(Objects::isNull);
+					/** 去掉无返回的空数据 */
+					fabulousList.removeIf(Objects::isNull);
 
-						if (CollectionUtils.isNotEmpty(fabulousList)) {
-							for (JSONObject jsonObject : list) {
-								String commnetId = jsonObject.getString("id");
-								for (JSONObject fabulousJson : fabulousList) {
-									if (commnetId.equals(fabulousJson.getString("commentId"))
-											&& 1 == fabulousJson.getIntValue("type")) {
-										jsonObject.put("isFabulous", 1);
-									}
+					if (CollectionUtils.isNotEmpty(fabulousList)) {
+						for (JSONObject jsonObject : list) {
+							String commnetId = jsonObject.getString("id");
+							for (JSONObject fabulousJson : fabulousList) {
+								if (commnetId.equals(fabulousJson.getString("commentId"))
+										&& 1 == fabulousJson.getIntValue("type")) {
+									jsonObject.put("isFabulous", 1);
 								}
 							}
 						}
-						vertxRequest.buildVertxRespone().responeSuccess(list);
-					} else {
-						vertxRequest.buildVertxRespone().responseFail(allRes.cause().getMessage());
 					}
+					vertxRequest.buildVertxRespone().responeSuccess(list);
+				}).onFailure(e -> {
+					vertxRequest.buildVertxRespone().responseFail(e.getMessage());
 				});
 			} else {
 				vertxRequest.buildVertxRespone().responeSuccess(Collections.EMPTY_LIST);
@@ -232,27 +258,6 @@ public class CommentRecipesController {
 		} else {
 			vertxRequest.buildVertxRespone().responseFail(result.cause().getMessage());
 		}
-	}
-
-	@RequestBody
-	@RequestMapping(value = "/queryRecipesCommentChildList", method = RequestMethod.POST)
-	public ControllerHandler queryRecipesCommentChildList() {
-
-		return vertxRequest -> {
-			JSONObject params = vertxRequest.getBodyJsonToBean(JSONObject.class);
-			logger.info("参数 {}", params);
-
-			int page = params.getIntValue("page");
-			int limit = params.getIntValue("limit");
-			String rootCommentId = params.getString("rootCommentId");
-
-			logger.info("pageNo为 {} ，pageSize为 {} ，rootCommentId为 {}", page, limit, rootCommentId);
-
-			commentRecipesAsyncService.queryRecipesCommentChildList(page, limit, rootCommentId,
-					result -> {
-						this.setCommentResponse(vertxRequest, result);
-					});
-		};
 	}
 
 	@RequestBody

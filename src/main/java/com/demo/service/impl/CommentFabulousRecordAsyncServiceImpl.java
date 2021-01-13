@@ -138,4 +138,35 @@ public class CommentFabulousRecordAsyncServiceImpl
 
 		return promise.future();
 	}
+
+//	@Override
+//	public Future<JSONObject> getLatelyOneFabulousRecordByUserId(String commentId, String userId) {
+//
+//		return Future.future(promise -> {
+//			String sql = "select comment_id as commentId, fabulous_type as type from comment_fabulous_record where comment_id = ? and fabulous_user_id = ? order by create_date desc limit 1";
+//
+//			// 构造参数
+//			JsonArray params = new JsonArray();
+//			params.add(commentId);
+//			params.add(userId);
+//
+//			// 执行查询
+//			jdbcClient.queryWithParams(sql, params, res -> {
+//				if (res.succeeded()) {
+//					ResultSet resultSet = res.result();
+//					List<JsonObject> rows = resultSet.getRows();
+//
+//					if (CollectionUtils.isNotEmpty(rows)) {
+//						JSONObject fastObject = rows.get(0).mapTo(JSONObject.class);
+//						promise.complete(fastObject);
+//					} else {
+//						promise.complete();
+//					}
+//				} else {
+//					logger.error("查询失败：{}", res.cause().getMessage());
+//					promise.fail(res.cause());
+//				}
+//			});
+//		});
+//	}
 }
